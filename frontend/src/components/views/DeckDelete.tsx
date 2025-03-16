@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  Typography, 
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
   Box,
   Dialog,
   DialogTitle,
@@ -48,7 +48,7 @@ function DeckDelete() {
   const loadDeck = async () => {
     try {
       if (!deckId) return;
-      const deckData = await api.getDeck(deckId);
+      const deckData = await api.getDeck(parseInt(deckId));
       setDeck(deckData);
       setError(null);
     } catch (err) {
@@ -164,13 +164,13 @@ function DeckDelete() {
                 />
               </Box>
 
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 flexWrap: 'wrap',
                 gap: 2,
-                mt: 2 
+                mt: 2
               }}>
                 <Button
                   variant="outlined"
@@ -183,17 +183,17 @@ function DeckDelete() {
                   {exporting ? 'Exporting...' : 'Export Deck'}
                 </Button>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button 
-                    onClick={handleCancel} 
-                    color="inherit" 
+                  <Button
+                    onClick={handleCancel}
+                    color="inherit"
                     size="large"
                     disabled={deleting}
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    onClick={handleDeleteClick} 
-                    variant="contained" 
+                  <Button
+                    onClick={handleDeleteClick}
+                    variant="contained"
                     color="error"
                     size="large"
                     startIcon={<WarningAmberIcon />}
@@ -245,7 +245,7 @@ function DeckDelete() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            You are about to delete <strong>{deck.name}</strong> containing {deck.cardCount} flashcards. 
+            You are about to delete <strong>{deck.name}</strong> containing {deck.cardCount} flashcards.
             This action cannot be undone and all associated data will be permanently lost.
           </DialogContentText>
           <Box sx={{ mt: 2 }}>
@@ -264,16 +264,16 @@ function DeckDelete() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setConfirmOpen(false)} 
+          <Button
+            onClick={() => setConfirmOpen(false)}
             color="inherit"
             disabled={deleting}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleDelete} 
-            color="error" 
+          <Button
+            onClick={handleDelete}
+            color="error"
             variant="contained"
             disabled={deleteText !== 'DELETE' || deleting}
           >

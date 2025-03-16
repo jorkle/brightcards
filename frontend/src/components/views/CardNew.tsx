@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  Typography, 
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
   Box,
   TextField,
   Stack,
@@ -40,7 +40,7 @@ function CardNew() {
 
     setSaving(true);
     try {
-      const newCard = await api.createCard(deckId, formData.front, formData.back);
+      const newCard = await api.createCard(parseInt(deckId), formData.front, formData.back);
       navigate(`/decks/${deckId}/cards`);
     } catch (err) {
       setError('Failed to create flashcard');
@@ -98,22 +98,22 @@ function CardNew() {
                   />
                 </Box>
 
-                <Box sx={{ 
-                  display: 'flex', 
+                <Box sx={{
+                  display: 'flex',
                   justifyContent: 'flex-end',
                   gap: 2,
-                  mt: 2 
+                  mt: 2
                 }}>
-                  <Button 
+                  <Button
                     onClick={handleCancel}
                     color="inherit"
                     disabled={saving}
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     type="submit"
-                    variant="contained" 
+                    variant="contained"
                     color="primary"
                     disabled={!isFormValid || saving}
                   >

@@ -1,15 +1,17 @@
 package api
 
 type FlashcardModel struct {
-	ID           int
-	Front        string
-	Back         string
-	DeckId       string
-	DueDate      string
-	LastReviewed *string
-	Difficulty   *string
-	CreatedAt    string
-	UpdatedAt    string
+	ID             int
+	Front          string
+	Back           string
+	DeckId         string
+	FSRSDifficulty float64
+	FSRSStability  float64
+	DueDate        float64
+	LastReviewed   *string
+	Difficulty     *string
+	CreatedAt      string
+	UpdatedAt      string
 }
 
 type DeckModel struct {

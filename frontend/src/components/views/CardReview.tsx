@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  Typography, 
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
   Box,
   Stack,
   Alert,
@@ -36,7 +36,7 @@ function CardReview() {
       if (!deckId || !cardId) return;
       const numericDeckId = parseInt(deckId, 10);
       const numericCardId = parseInt(cardId, 10);
-      
+
       if (isNaN(numericDeckId) || isNaN(numericCardId)) {
         setError('Invalid deck or card ID');
         setLoading(false);
@@ -62,7 +62,7 @@ function CardReview() {
     if (!card || !deckId || !cardId) return;
     const numericDeckId = parseInt(deckId, 10);
     const numericCardId = parseInt(cardId, 10);
-    
+
     if (isNaN(numericDeckId) || isNaN(numericCardId)) {
       setError('Invalid deck or card ID');
       return;
@@ -106,8 +106,8 @@ function CardReview() {
           <Typography variant="h4">
             Review Card
           </Typography>
-          <Button 
-            color="inherit" 
+          <Button
+            color="inherit"
             onClick={handleSkip}
             disabled={reviewing}
           >
@@ -158,28 +158,28 @@ function CardReview() {
                         How well did you know this?
                       </Typography>
                       <ButtonGroup variant="contained" size="large" fullWidth>
-                        <Button 
+                        <Button
                           onClick={() => handleGrade(ReviewGrade.Again)}
                           color="error"
                           disabled={reviewing}
                         >
                           Again
                         </Button>
-                        <Button 
+                        <Button
                           onClick={() => handleGrade(ReviewGrade.Hard)}
                           color="warning"
                           disabled={reviewing}
                         >
                           Hard
                         </Button>
-                        <Button 
+                        <Button
                           onClick={() => handleGrade(ReviewGrade.Normal)}
                           color="info"
                           disabled={reviewing}
                         >
                           Good
                         </Button>
-                        <Button 
+                        <Button
                           onClick={() => handleGrade(ReviewGrade.Easy)}
                           color="success"
                           disabled={reviewing}
@@ -207,7 +207,7 @@ function CardReview() {
                 label={`Current difficulty: ${card.difficulty}`}
                 color={
                   card.difficulty === 'Easy' ? 'success' :
-                  card.difficulty === 'Hard' ? 'error' : 'info'
+                    card.difficulty === 'Hard' ? 'error' : 'info'
                 }
                 variant="outlined"
               />

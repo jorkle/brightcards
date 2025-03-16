@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/jorkle/brightcards/backend/components/api"
+	"github.com/jorkle/brightcards/backend/components/models"
 )
 
 const (
@@ -14,20 +14,20 @@ const (
 	GradeEasy  = 4 // 'Easy'
 )
 
-func DoInitialGrading(flashcard api.FlashcardModel, grade int) {
+func DoInitialGrading(flashcard models.FlashcardModel, grade int) {
 	stability, difficulty := NextReviewFirst(grade)
 	flashcard.FSRSStability = stability
 	flashcard.FSRSStability = difficulty
-	flashcard.DueDate = stability
+	flashcard.DaysTillDue = stability
 }
 
-func DoSubsequentGrading(flashcard *api.FlashcardModel, grade int) {
+func DoSubsequentGrading(flashcard *models.FlashcardModel, grade int) {
 	oldDifficulty := flashcard.FSRSDifficulty
 	oldStability := flashcard.FSRSStability
 	timing, difficulty, stability := NextReviewSubsequent(grade, oldDifficulty, oldStability)
 	flashcard.FSRSStability = stability
 	flashcard.FSRSDifficulty = difficulty
-	flashcard.DueDate = timing
+	flashcard.DaysTillDue = timing
 }
 
 func NextReviewFirst(grade int) (float64, float64) {

@@ -1,13 +1,13 @@
-package api
+package models
 
 type FlashcardModel struct {
 	ID             int
 	Front          string
 	Back           string
-	DeckId         string
+	DeckId         int
 	FSRSDifficulty float64
 	FSRSStability  float64
-	DueDate        float64
+	DaysTillDue    float64
 	LastReviewed   *string
 	Difficulty     *string
 	CreatedAt      string

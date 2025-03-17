@@ -1,102 +1,173 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { 
+  Button, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Box,
+  CircularProgress,
+  Alert,
+  Chip,
+  Stack,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton
+} from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import PreviewIcon from '@mui/icons-material/Preview';
+import * as models from '../../../wailsjs/go/models';
+import { GetAllDecks } from '../../../wailsjs/go/main/DeckImpl';
+import { GetDueFlashcards } from '../../../wailsjs/go/main/FlashcardImpl';
 
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { Button, Card, CardContent, Typography } from '@mui/material';
-import Grid from '@mui/material/Grid2';
-
-interface Flashcard {
-  front: string;
-  back: string;
+interface DeckWithDueCards extends models.models.DeckModel {
+  dueCards: models.models.FlashcardModel[];
 }
-
-const flashcards: Flashcard[] = [
-  { front: 'Front of Card 1', back: 'Back of Card 1' },
-  { front: 'Front of Card 2', back: 'Back of Card 2' },
-  // Add more flashcards as needed
-];
-
-interface Deck {
-  deckId: number;
-  flashcards: Flashcard[];
-}
-
-interface Decks {
-  decks: Deck[];
-}
-
 
 function ReviewAll() {
   const navigate = useNavigate();
-  const deckOne: Deck = {
-    deckId: 44, flashcards: flashcards
-  }
-  const deckTwo: Deck = {
-    deckId: 44, flashcards: flashcards
-  }
-  const decks: Decks = {
-    decks: [deckOne, deckTwo]
-  }
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [currentDeckIndex, setCurrentDeckIndex] = useState(0);
-  const [showBack, setShowBack] = useState(false);
+  const [decks, setDecks] = useState<DeckWithDueCards[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalDueCards, setTotalDueCards] = useState(0);
 
-  const handleShowBack = () => {
-    setShowBack(true);
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const decksData = await GetAllDecks();
+      
+      // Fetch due cards for each deck
+      const decksWithCards = await Promise.all(
+        decksData.map(async (deck) => {
+          const dueCards = await GetDueFlashcards(deck.ID);
+          return {
+            ...deck,
+            dueCards
+          };
+        })
+      );
+
+      // Filter decks with due cards and calculate total
+      const decksWithDueCards = decksWithCards.filter(deck => deck.dueCards.length > 0);
+      const total = decksWithDueCards.reduce((sum, deck) => sum + deck.dueCards.length, 0);
+
+      setDecks(decksWithDueCards);
+      setTotalDueCards(total);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load review data');
+      console.error('Error loading review data:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGrade = (grade: string) => {
-    setShowBack(false);
-    setCurrentCardIndex((prevIndex) => (prevIndex + 1) % flashcards.length);
-    if (currentCardIndex === flashcards.length - 1) {
-      setCurrentDeckIndex((prevIndex) => (prevIndex + 1) % decks.decks.length);
-      if (currentDeckIndex === decks.decks.length - 1) {
-        navigate('/overview')
-      }
-    };
-    // Handle grading logic here
-    console.log(`Card graded as: ${grade}`);
-  };
-  const currentDeck = decks.decks[currentDeckIndex]; // Assuming we are reviewing the first deck
-  const currentCard = currentDeck.flashcards[currentCardIndex];
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <div className="p-4">
-      <Typography variant="h4" className="mb-4">
-        Reviewing All Decks (due)
-      </Typography>
-      <Grid container justifyContent="center">
-        <Grid size={{ xs: 12, sm: 8, md: 6 }}>
+      <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography variant="h4">
+            Review All Decks
+          </Typography>
+          <Chip
+            icon={<AutoStoriesIcon />}
+            label={`${totalDueCards} cards due`}
+            color="primary"
+            variant="outlined"
+          />
+        </Box>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        {decks.length === 0 ? (
           <Card>
             <CardContent>
-              <Typography variant="h5" className="mb-4">
-                {showBack ? currentCard.back : currentCard.front}
-              </Typography>
-              {!showBack ? (
-                <Button variant="contained" color="primary" onClick={handleShowBack}>
-                  Show Back
+              <Stack spacing={2} alignItems="center" sx={{ py: 4 }}>
+                <Typography variant="h6" color="text.secondary">
+                  No cards due for review
+                </Typography>
+                <Typography variant="body1" color="text.secondary" align="center">
+                  All caught up! Check back later for more cards to review.
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => navigate('/decks')}
+                >
+                  View All Decks
                 </Button>
-              ) : (
-                <div className="flex justify-around mt-4">
-                  <Button variant="outlined" color="secondary" onClick={() => handleGrade('Again')}>
-                    Again
-                  </Button>
-                  <Button variant="outlined" color="secondary" onClick={() => handleGrade('Easy')}>
-                    Easy
-                  </Button>
-                  <Button variant="outlined" color="secondary" onClick={() => handleGrade('Normal')}>
-                    Normal
-                  </Button>
-                  <Button variant="outlined" color="secondary" onClick={() => handleGrade('Hard')}>
-                    Hard
-                  </Button>
-                </div>
-              )}
+              </Stack>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        ) : (
+          <Grid container spacing={3}>
+            {decks.map((deck) => (
+              <Grid item xs={12} key={deck.ID}>
+                <Card>
+                  <CardContent>
+                    <Stack spacing={2}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h6">
+                          {deck.Name}
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => navigate(`/decks/${deck.ID}/review`)}
+                          startIcon={<PreviewIcon />}
+                        >
+                          Start Review
+                        </Button>
+                      </Box>
+                      
+                      <Typography variant="body2" color="text.secondary">
+                        {deck.Description}
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        <Chip
+                          icon={<AutoStoriesIcon />}
+                          label={`${deck.dueCards.length} cards due`}
+                          color="secondary"
+                          variant="outlined"
+                        />
+                        {deck.LastReviewed && (
+                          <Chip
+                            icon={<AccessTimeIcon />}
+                            label={`Last reviewed: ${new Date(deck.LastReviewed).toLocaleDateString()}`}
+                            variant="outlined"
+                          />
+                        )}
+                      </Box>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Box>
     </div>
   );
 }
 
-export default ReviewAll
+export default ReviewAll;

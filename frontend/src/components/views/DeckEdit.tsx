@@ -19,7 +19,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import * as models from '../../../wailsjs/go/models';
-import { UpdateDeck, GetDeck } from '../../../wailsjs/go/api/DeckImpl';
+import { UpdateDeck, GetDeck } from '../../../wailsjs/go/main/DeckImpl';
 
 function DeckEdit() {
   const { deckId } = useParams<{ deckId: string }>();

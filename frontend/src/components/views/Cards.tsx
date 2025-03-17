@@ -22,8 +22,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import PreviewIcon from '@mui/icons-material/Preview';
 import AddIcon from '@mui/icons-material/Add';
 import * as models from '../../../wailsjs/go/models';
-import { GetDeck} from '../../../wailsjs/go/api/DeckImpl';
-import { GetAllFlashcards, GetDueFlashcards } from '../../../wailsjs/go/api/FlashcardImpl';
+import { GetDeck} from '../../../wailsjs/go/main/DeckImpl';
+import { GetAllFlashcards, GetDueFlashcards } from '../../../wailsjs/go/main/FlashcardImpl';
 
 function Cards() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -40,6 +40,7 @@ function Cards() {
   }, [deckId]);
 
   const loadData = async () => {
+    console.log(deckId)
     if (!deckId) return;
     const numericDeckId = parseInt(deckId, 10);
     if (isNaN(numericDeckId)) {
@@ -104,7 +105,13 @@ function Cards() {
               <IconButton 
                 edge="end" 
                 aria-label="preview"
-                onClick={() => navigate(`/decks/${deckId}/cards/${card.ID}/review`)}
+                onClick={() => {
+                  if (card.CardType === 'feynman') {
+                    navigate(`/feynman-review/${deckId}/${card.ID}`);
+                  } else {
+                    navigate(`/decks/${deckId}/cards/${card.ID}/review`);
+                  }
+                }}
               >
                 <PreviewIcon />
               </IconButton>
@@ -140,14 +147,22 @@ function Cards() {
             }
             secondary={
               <Box sx={{ mt: 1 }}>
+                {card.CardType && (
+                  <Chip 
+                    label={card.CardType.charAt(0).toUpperCase() + card.CardType.slice(1)} 
+                    size="small" 
+                    color={card.CardType === 'feynman' ? 'secondary' : 'default'}
+                    sx={{ mr: 1, mb: 1 }}
+                  />
+                )}
                 {card.LastReviewed && (
                   <Typography variant="caption" display="block" color="text.secondary">
                     Last reviewed: {new Date(card.LastReviewed).toLocaleDateString()}
                   </Typography>
                 )}
-                {card.DaysTillDue && (
+                {card.DueDate && (
                   <Typography variant="caption" display="block" color="text.secondary">
-                    Due: {(() => { const d = new Date(); d.setDate(d.getDate() + card.DaysTillDue); return d.toLocaleDateString(); })()}
+                    Due: {new Date(card.DueDate).toLocaleDateString()}
                   </Typography>
                 )}
               </Box>

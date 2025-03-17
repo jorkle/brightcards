@@ -1,17 +1,20 @@
 package models
 
+import "time"
+
 type FlashcardModel struct {
-	ID             int     `json:"ID"`
-	Front          string  `json:"Front"`
-	Back           string  `json:"Back"`
-	DeckId         int     `json:"DeckId"`
-	FSRSDifficulty float64 `json:"FSRSDifficulty"`
-	FSRSStability  float64 `json:"FSRSStability"`
-	DaysTillDue    float64 `json:"DaysTillDue"`
-	LastReviewed   *string `json:"LastReviewed,omitempty"`
-	Difficulty     *string `json:"Difficulty,omitempty"`
-	CreatedAt      string  `json:"CreatedAt"`
-	UpdatedAt      string  `json:"UpdatedAt"`
+	ID             int       `json:"ID"`
+	Front          string    `json:"Front"`
+	Back           string    `json:"Back"`
+	DeckId         int       `json:"DeckId"`
+	CardType       string    `json:"CardType"`
+	FSRSDifficulty float64   `json:"FSRSDifficulty"`
+	FSRSStability  float64   `json:"FSRSStability"`
+	DueDate        time.Time `json:"DueDate"`
+	LastReviewed   *string   `json:"LastReviewed,omitempty"`
+	Difficulty     *string   `json:"Difficulty,omitempty"`
+	CreatedAt      string    `json:"CreatedAt"`
+	UpdatedAt      string    `json:"UpdatedAt"`
 }
 
 type DeckModel struct {

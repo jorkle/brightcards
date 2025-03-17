@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Button, Card, CardContent, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import { DeleteFlashcard } from '../../../wailsjs/go/api/FlashcardImpl';
+import { DeleteFlashcard } from '../../../wailsjs/go/main/FlashcardImpl';
 
 interface Flashcard {
   front: string;

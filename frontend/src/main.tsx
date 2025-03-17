@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import ReactDOM from "react-dom/client";
 import * as runtime from '../wailsjs/runtime/runtime'
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Routes,
   Route,
   Link
@@ -20,36 +20,63 @@ import DeckDelete from './components/views/DeckDelete';
 import DeckNew from './components/views/DeckNew';
 import DeckReview from './components/views/DeckReview';
 import Cards from './components/views/Cards';
-import CardNew from './components/views/CardNew';
+import CardCreate from './components/views/CardCreate';
 import CardEdit from './components/views/CardEdit';
 import CardReview from './components/views/CardReview';
 import CardDelete from './components/views/CardDelete';
+import FeynmanReview from './components/views/FeynmanReview';
+import Settings from './components/views/Settings';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#90caf9',
+    },
+    secondary: {
+      main: '#f48fb1',
+    },
+  },
+});
 
 const container = document.getElementById('root')
 
-
 if (container != null) {
   ReactDOM.createRoot(container).render(
-    <>
-      <NavBar />
-      <Router>
-        <Routes>
-          <Route index element={<Overview />} />
-          <Route path="about" element={<About />} />
-          <Route path="decks" element={<Decks />} />
-          <Route path="review" element={<ReviewAll />} />
-          <Route path="decks/:deckId" element={<Deck />} />
-          <Route path="decks/:deckId/edit" element={<DeckEdit />} />
-          <Route path="decks/:deckId/delete" element={<DeckDelete />} />
-          <Route path="decks/new" element={<DeckNew />} />
-          <Route path="decks/:deckId/review" element={<DeckReview />} />
-          <Route path="decks/:deckId/cards" element={<Cards />} />
-          <Route path="decks/:deckId/cards/new" element={<CardNew />} />
-          <Route path="decks/:deckId/cards/:cardId/edit" element={<CardEdit />} />
-          <Route path="decks/:deckId/cards/:cardId/review" element={<CardReview />} />
-          <Route path="decks/:deckId/cards/:cardId/delete" element={<CardDelete />} />
-        </Routes>
-      </Router>
-    </>
+    <React.StrictMode>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '100vh',
+            backgroundColor: 'inherit'
+          }}>
+            <NavBar />
+            <Routes>
+              <Route path="/" element={<Overview />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/decks/new" element={<DeckNew />} />
+              <Route path="/decks/:deckId/edit" element={<DeckEdit />} />
+              <Route path="/decks/:deckId/delete" element={<DeckDelete />} />
+              <Route path="/decks/:deckId/review" element={<DeckReview />} />
+              <Route path="/decks/:deckId/cards/new" element={<CardCreate />} />
+              <Route path="/decks/:deckId/cards/:cardId/edit" element={<CardEdit />} />
+              <Route path="/decks/:deckId/cards/:cardId/review" element={<CardReview />} />
+              <Route path="/decks/:deckId/cards/:cardId/delete" element={<CardDelete />} />
+              <Route path="/decks/:deckId/cards" element={<Cards />} />
+              <Route path="/decks/:deckId" element={<Deck />} />
+              <Route path="/decks" element={<Decks />} />
+              <Route path="/review" element={<ReviewAll />} />
+              <Route path="/feynman-review/:deckId/:cardId" element={<FeynmanReview />} />
+            </Routes>
+          </div>
+        </Router>
+      </ThemeProvider>
+    </React.StrictMode>
   );
 }

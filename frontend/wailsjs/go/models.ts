@@ -31,9 +31,11 @@ export namespace models {
 	    Front: string;
 	    Back: string;
 	    DeckId: number;
+	    CardType: string;
 	    FSRSDifficulty: number;
 	    FSRSStability: number;
-	    DaysTillDue: number;
+	    // Go type: time
+	    DueDate: any;
 	    LastReviewed?: string;
 	    Difficulty?: string;
 	    CreatedAt: string;
@@ -49,13 +51,53 @@ export namespace models {
 	        this.Front = source["Front"];
 	        this.Back = source["Back"];
 	        this.DeckId = source["DeckId"];
+	        this.CardType = source["CardType"];
 	        this.FSRSDifficulty = source["FSRSDifficulty"];
 	        this.FSRSStability = source["FSRSStability"];
-	        this.DaysTillDue = source["DaysTillDue"];
+	        this.DueDate = this.convertValues(source["DueDate"], null);
 	        this.LastReviewed = source["LastReviewed"];
 	        this.Difficulty = source["Difficulty"];
 	        this.CreatedAt = source["CreatedAt"];
 	        this.UpdatedAt = source["UpdatedAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace services {
+	
+	export class FeynmanAnalysis {
+	    strongspots: string;
+	    weakspots: string;
+	    resources: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new FeynmanAnalysis(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.strongspots = source["strongspots"];
+	        this.weakspots = source["weakspots"];
+	        this.resources = source["resources"];
 	    }
 	}
 

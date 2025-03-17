@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import { Link } from 'react-router';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 function NavBar() {
   return (
@@ -15,14 +16,19 @@ function NavBar() {
           Bright Cards
         </Typography>
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-
-          <Button href="/decks" color="inherit">Decks</Button>
-          <Button href="/" color="inherit">Overview</Button>
-          <Button href="/review" color="inherit">Review</Button>
-          <Button href="/about" color="inherit">About</Button>
+          <Button component={Link} to="/decks" color="inherit">Decks</Button>
+          <Button component={Link} to="/" color="inherit">Overview</Button>
+          <Button component={Link} to="/review" color="inherit">Review</Button>
+          <Button component={Link} to="/about" color="inherit">About</Button>
         </div>
-        <IconButton edge="end" color="inherit" aria-label="menu">
-          <MenuIcon />
+        <IconButton 
+          edge="end" 
+          color="inherit" 
+          aria-label="settings" 
+          component={Link} 
+          to="/settings"
+        >
+          <SettingsIcon />
         </IconButton>
       </Toolbar>
     </AppBar>

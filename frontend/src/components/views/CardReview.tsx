@@ -16,15 +16,15 @@ import {
 import Grid from '@mui/material/Grid2';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import * as models from '../../../wailsjs/go/models';
-import { GetFlashcard, ReviewFlashcard } from '../../../wailsjs/go/api/FlashcardImpl';
+import { GetFlashcard, ReviewFlashcard } from '../../../wailsjs/go/main/FlashcardImpl';
 
 function CardReview() {
 
 enum ReviewGrade {
-  Again = 'Again',
-  Hard = 'Hard',
-  Normal = 'Normal',
-  Easy = 'Easy'
+  Again = 'again',
+  Hard = 'hard',
+  Normal = 'normal',
+  Easy = 'easy'
 } 
   const { deckId, cardId } = useParams<{ deckId: string; cardId: string }>();
   const navigate = useNavigate();

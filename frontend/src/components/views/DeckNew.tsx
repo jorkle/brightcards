@@ -15,7 +15,7 @@ import {
 import Grid from '@mui/material/Grid2';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import * as models from '../../../wailsjs/go/models';
-import { CreateDeck } from '../../../wailsjs/go/api/DeckImpl';
+import { CreateDeck } from '../../../wailsjs/go/main/DeckImpl';
 
 function DeckNew() {
   const navigate = useNavigate();

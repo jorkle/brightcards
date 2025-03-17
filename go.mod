@@ -3,7 +3,9 @@ module github.com/jorkle/brightcards
 go 1.23
 
 require (
+	github.com/gen2brain/malgo v0.11.23
 	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/sashabaranov/go-openai v1.38.0
 	github.com/wailsapp/wails/v2 v2.10.1
 )
 

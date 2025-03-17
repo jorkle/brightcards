@@ -2,12 +2,10 @@ package main
 
 import (
 	"testing"
-
-	"github.com/jorkle/brightcards/backend/components/api"
 )
 
 func TestDeckImpl(t *testing.T) {
-	deck := &api.DeckImpl{}
+	deck := &DeckImpl{}
 
 	t.Run("Create and Get Deck", func(t *testing.T) {
 		// Create a test deck
@@ -79,8 +77,8 @@ func TestDeckImpl(t *testing.T) {
 }
 
 func TestFlashcardImpl(t *testing.T) {
-	flashcard := &api.FlashcardImpl{}
-	deck := &api.DeckImpl{}
+	flashcard := &FlashcardImpl{}
+	deck := &DeckImpl{}
 
 	// Create a test deck for flashcard tests
 	testDeck, err := deck.CreateDeck("Test Deck", "For Flashcard Tests", "Testing")
@@ -90,7 +88,7 @@ func TestFlashcardImpl(t *testing.T) {
 
 	t.Run("Create and Get Flashcard", func(t *testing.T) {
 		// Create a test flashcard
-		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Test Front", "Test Back")
+		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Test Front", "Test Back", "standard")
 		if err != nil {
 			t.Fatalf("Failed to create flashcard: %v", err)
 		}
@@ -119,7 +117,7 @@ func TestFlashcardImpl(t *testing.T) {
 
 	t.Run("Update Flashcard", func(t *testing.T) {
 		// Create a flashcard to update
-		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Original Front", "Original Back")
+		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Original Front", "Original Back", "standard")
 		if err != nil {
 			t.Fatalf("Failed to create flashcard for update test: %v", err)
 		}
@@ -139,7 +137,7 @@ func TestFlashcardImpl(t *testing.T) {
 
 	t.Run("Review Flashcard", func(t *testing.T) {
 		// Create a flashcard to review
-		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Review Front", "Review Back")
+		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Review Front", "Review Back", "standard")
 		if err != nil {
 			t.Fatalf("Failed to create flashcard for review test: %v", err)
 		}
@@ -163,7 +161,7 @@ func TestFlashcardImpl(t *testing.T) {
 
 	t.Run("Delete Flashcard", func(t *testing.T) {
 		// Create a flashcard to delete
-		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Delete Front", "Delete Back")
+		createdCard, err := flashcard.CreateFlashcard(testDeck.ID, "Delete Front", "Delete Back", "standard")
 		if err != nil {
 			t.Fatalf("Failed to create flashcard for delete test: %v", err)
 		}

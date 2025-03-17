@@ -27,8 +27,12 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import * as models from '../../../wailsjs/go/models';
-import { GetDeck, DeleteDeck, ExportDeck } from '../../../wailsjs/go/api/DeckImpl';
-import { ExportFormat } from '../../lib/wailsjs/go/models';
+import { GetDeck, DeleteDeck, ExportDeck } from '../../../wailsjs/go/main/DeckImpl';
+
+type ExportFormat = {
+  type: 'anki' | 'csv' | 'json';
+  filename: string;
+}
 
 function DeckDelete() {
   const { deckId } = useParams<{ deckId: string }>();

@@ -16,7 +16,7 @@ import {
   CircularProgress,
   Stack
 } from '@mui/material';
-import Grid from '@mui/material/Grid2';
+import Grid2 from '@mui/material/Grid2';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PreviewIcon from '@mui/icons-material/Preview';
@@ -24,7 +24,7 @@ import AddIcon from '@mui/icons-material/Add';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import * as models from '../../../wailsjs/go/models';
-import { GetAllDecks } from '../../../wailsjs/go/api/DeckImpl';
+import { GetAllDecks } from '../../../wailsjs/go/main/DeckImpl';
 function Decks() {
   const navigate = useNavigate();
   const [decks, setDecks] = useState<models.models.DeckModel[]>([]);
@@ -107,7 +107,13 @@ function Decks() {
               <ListItem
                 key={deck.ID}
                 component={Card}
-                sx={{ mb: 2, '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
+                sx={{ 
+                  mb: 2, 
+                  transition: 'background-color 500ms ease',
+                  '&:hover': { 
+                    backgroundColor: 'rgb(0, 110, 255)' 
+                  } 
+                }}
                 secondaryAction={
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <IconButton 

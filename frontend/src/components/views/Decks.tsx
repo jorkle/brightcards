@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { useNavigate } from 'react-router';
 import { 
   Button, 
@@ -22,12 +23,11 @@ import PreviewIcon from '@mui/icons-material/Preview';
 import AddIcon from '@mui/icons-material/Add';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
-import { Deck } from '../../lib/wailsjs/go/models';
-import * as api from '../../lib/wailsjs/go/api';
-
+import * as models from '../../../wailsjs/go/models';
+import { GetAllDecks } from '../../../wailsjs/go/api/DeckImpl';
 function Decks() {
   const navigate = useNavigate();
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const [decks, setDecks] = useState<models.models.DeckModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +38,7 @@ function Decks() {
   const loadDecks = async () => {
     setLoading(true);
     try {
-      const decksData = await api.listDecks();
+      const decksData = await GetAllDecks();
       setDecks(decksData);
       setError(null);
     } catch (err) {
@@ -105,7 +105,7 @@ function Decks() {
           <List>
             {decks.map((deck) => (
               <ListItem
-                key={deck.id}
+                key={deck.ID}
                 component={Card}
                 sx={{ mb: 2, '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
                 secondaryAction={
@@ -115,7 +115,7 @@ function Decks() {
                       aria-label="review"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/decks/${deck.id}/cards`);
+                        navigate(`/decks/${deck.ID}/cards`);
                       }}
                     >
                       <PreviewIcon />
@@ -125,7 +125,7 @@ function Decks() {
                       aria-label="edit"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/decks/${deck.id}/edit`);
+                        navigate(`/decks/${deck.ID}/edit`);
                       }}
                     >
                       <EditIcon />
@@ -135,37 +135,31 @@ function Decks() {
                       aria-label="delete"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/decks/${deck.id}/delete`);
+                        navigate(`/decks/${deck.ID}/delete`);
                       }}
                     >
                       <DeleteIcon />
                     </IconButton>
                   </Box>
                 }
-                onClick={() => navigate(`/decks/${deck.id}/cards`)}
+                onClick={() => navigate(`/decks/${deck.ID}/cards`)}
               >
                 <ListItemText
                   primary={
                     <Typography variant="h6">
-                      {deck.name}
+                      {deck.Name}
                     </Typography>
                   }
                   secondary={
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {deck.description}
+                        {deck.Description}
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
-                        <Chip
-                          icon={<AutoStoriesIcon />}
-                          label={`${deck.cardCount} cards`}
-                          variant="outlined"
-                          size="small"
-                        />
-                        {deck.lastReviewed && (
+                        {deck.LastReviewed && (
                           <Chip
                             icon={<AccessTimeIcon />}
-                            label={`Last reviewed: ${new Date(deck.lastReviewed).toLocaleDateString()}`}
+                            label={`Last reviewed: ${new Date(deck.LastReviewed).toLocaleDateString()}`}
                             variant="outlined"
                             size="small"
                           />

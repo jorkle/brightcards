@@ -21,16 +21,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PreviewIcon from '@mui/icons-material/Preview';
 import AddIcon from '@mui/icons-material/Add';
-import { Flashcard, Deck } from '../../lib/wailsjs/go/models';
-import * as api from '../../lib/wailsjs/go/api';
+import * as models from '../../../wailsjs/go/models';
+import { GetDeck} from '../../../wailsjs/go/api/DeckImpl';
+import { GetAllFlashcards, GetDueFlashcards } from '../../../wailsjs/go/api/FlashcardImpl';
 
 function Cards() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
-  const [cards, setCards] = useState<Flashcard[]>([]);
-  const [dueCards, setDueCards] = useState<Flashcard[]>([]);
-  const [deck, setDeck] = useState<Deck | null>(null);
+  const [cards, setCards] = useState<models.models.FlashcardModel[]>([]);
+  const [dueCards, setDueCards] = useState<models.models.FlashcardModel[]>([]);
+  const [deck, setDeck] = useState<models.models.DeckModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,9 +51,9 @@ function Cards() {
     setLoading(true);
     try {
       const [deckData, allCards, dueCardsData] = await Promise.all([
-        api.getDeck(numericDeckId),
-        api.listCards(numericDeckId),
-        api.listDueCards(numericDeckId)
+        GetDeck(numericDeckId),
+        GetAllFlashcards(numericDeckId),
+        GetDueFlashcards(numericDeckId)
       ]);
       setDeck(deckData);
       setCards(allCards);
@@ -79,11 +80,11 @@ function Cards() {
     }
   };
 
-  const renderCardList = (cardsToRender: Flashcard[]) => (
+  const renderCardList = (cardsToRender: models.models.FlashcardModel[]) => (
     <List>
       {cardsToRender.map((card) => (
         <ListItem
-          key={card.id}
+          key={card.ID}
           divider
           sx={{
             '&:hover': {
@@ -92,32 +93,32 @@ function Cards() {
           }}
           secondaryAction={
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              {card.difficulty && (
+              {card.Difficulty && (
                 <Chip 
-                  label={card.difficulty} 
+                  label={card.Difficulty} 
                   size="small" 
-                  color={getDifficultyColor(card.difficulty)}
+                  color={getDifficultyColor(card.Difficulty)}
                   sx={{ mr: 2 }}
                 />
               )}
               <IconButton 
                 edge="end" 
                 aria-label="preview"
-                onClick={() => navigate(`/decks/${deckId}/cards/${card.id}/review`)}
+                onClick={() => navigate(`/decks/${deckId}/cards/${card.ID}/review`)}
               >
                 <PreviewIcon />
               </IconButton>
               <IconButton 
                 edge="end" 
                 aria-label="edit"
-                onClick={() => navigate(`/decks/${deckId}/cards/${card.id}/edit`)}
+                onClick={() => navigate(`/decks/${deckId}/cards/${card.ID}/edit`)}
               >
                 <EditIcon />
               </IconButton>
               <IconButton 
                 edge="end" 
                 aria-label="delete"
-                onClick={() => navigate(`/decks/${deckId}/cards/${card.id}/delete`)}
+                onClick={() => navigate(`/decks/${deckId}/cards/${card.ID}/delete`)}
               >
                 <DeleteIcon />
               </IconButton>
@@ -134,19 +135,19 @@ function Cards() {
                   WebkitLineClamp: 2,
                 }}
               >
-                {card.front}
+                {card.Front}
               </Typography>
             }
             secondary={
               <Box sx={{ mt: 1 }}>
-                {card.lastReviewed && (
+                {card.LastReviewed && (
                   <Typography variant="caption" display="block" color="text.secondary">
-                    Last reviewed: {new Date(card.lastReviewed).toLocaleDateString()}
+                    Last reviewed: {new Date(card.LastReviewed).toLocaleDateString()}
                   </Typography>
                 )}
-                {card.dueDate && (
+                {card.DaysTillDue && (
                   <Typography variant="caption" display="block" color="text.secondary">
-                    Due: {new Date(card.dueDate).toLocaleDateString()}
+                    Due: {(() => { const d = new Date(); d.setDate(d.getDate() + card.DaysTillDue); return d.toLocaleDateString(); })()}
                   </Typography>
                 )}
               </Box>
@@ -177,7 +178,7 @@ function Cards() {
     <div className="p-4">
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4">
-          {deck.name} - Flashcards
+          {deck.Name} - Flashcards
         </Typography>
         <Button
           variant="contained"

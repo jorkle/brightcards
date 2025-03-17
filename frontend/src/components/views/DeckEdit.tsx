@@ -18,13 +18,13 @@ import Grid from '@mui/material/Grid2';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { Deck } from '../../lib/wailsjs/go/models';
-import * as api from '../../lib/wailsjs/go/api';
+import * as models from '../../../wailsjs/go/models';
+import { UpdateDeck, GetDeck } from '../../../wailsjs/go/api/DeckImpl';
 
 function DeckEdit() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
-  const [deck, setDeck] = useState<Deck | null>(null);
+  const [deck, setDeck] = useState<models.models.DeckModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,12 +49,12 @@ function DeckEdit() {
         return;
       }
 
-      const deckData = await api.getDeck(numericDeckId);
+      const deckData = await GetDeck(numericDeckId);
       setDeck(deckData);
       setFormData({
-        name: deckData.name,
-        description: deckData.description,
-        purpose: deckData.purpose
+        name: deckData.Name,
+        description: deckData.Description,
+        purpose: deckData.Purpose
       });
       setError(null);
     } catch (err) {
@@ -88,7 +88,7 @@ function DeckEdit() {
 
     setSaving(true);
     try {
-      await api.updateDeck(numericDeckId, formData.name, formData.description, formData.purpose);
+      await UpdateDeck(numericDeckId, formData.name, formData.description, formData.purpose);
       navigate('/decks');
     } catch (err) {
       setError('Failed to update deck');
@@ -182,15 +182,10 @@ function DeckEdit() {
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <Chip
-                    icon={<AutoStoriesIcon />}
-                    label={`${deck.cardCount} cards`}
-                    variant="outlined"
-                  />
-                  {deck.lastReviewed && (
+                  {deck.LastReviewed && (
                     <Chip
                       icon={<AccessTimeIcon />}
-                      label={`Last reviewed: ${new Date(deck.lastReviewed).toLocaleDateString()}`}
+                      label={`Last reviewed: ${new Date(deck.LastReviewed).toLocaleDateString()}`}
                       variant="outlined"
                     />
                   )}

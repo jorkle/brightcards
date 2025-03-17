@@ -11,7 +11,8 @@ import {
   Alert
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
-import * as api from '../../lib/wailsjs/go/api';
+import { CreateFlashcard } from '../../../wailsjs/go/api/FlashcardImpl';
+import { Create } from '@mui/icons-material';
 
 function CardNew() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -40,7 +41,7 @@ function CardNew() {
 
     setSaving(true);
     try {
-      const newCard = await api.createCard(parseInt(deckId), formData.front, formData.back);
+      const newCard = await CreateFlashcard(parseInt(deckId), formData.front, formData.back);
       navigate(`/decks/${deckId}/cards`);
     } catch (err) {
       setError('Failed to create flashcard');

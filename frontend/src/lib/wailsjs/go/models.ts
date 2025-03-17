@@ -28,9 +28,3 @@ export interface ExportFormat {
 }
 
 // Review grades matching the backend constants
-export enum ReviewGrade {
-  Again = 'Again',
-  Hard = 'Hard',
-  Normal = 'Normal',
-  Easy = 'Easy'
-} 

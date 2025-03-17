@@ -1,6 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import ReactDOM from "react-dom/client";
+import * as runtime from '../wailsjs/runtime/runtime'
 import {
   BrowserRouter as Router,
   Routes,

@@ -3,6 +3,8 @@ package main
 import (
 	"embed"
 
+	"github.com/jorkle/brightcards/backend/components/api"
+	"github.com/jorkle/brightcards/backend/components/models"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -14,7 +16,10 @@ var assets embed.FS
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
-
+	flashcard := api.FlashcardImpl{}
+	cardModel := models.FlashcardModel{}
+	deckModel := models.DeckModel{}
+	deck := api.DeckImpl{}
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "bcards",
@@ -27,6 +32,10 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
+			flashcard,
+			cardModel,
+			deckModel,
+			deck,
 		},
 	})
 

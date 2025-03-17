@@ -15,13 +15,20 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { Flashcard, ReviewGrade } from '../../lib/wailsjs/go/models';
-import * as api from '../../lib/wailsjs/go/api';
+import * as models from '../../../wailsjs/go/models';
+import { GetFlashcard, ReviewFlashcard } from '../../../wailsjs/go/api/FlashcardImpl';
 
 function CardReview() {
+
+enum ReviewGrade {
+  Again = 'Again',
+  Hard = 'Hard',
+  Normal = 'Normal',
+  Easy = 'Easy'
+} 
   const { deckId, cardId } = useParams<{ deckId: string; cardId: string }>();
   const navigate = useNavigate();
-  const [card, setCard] = useState<Flashcard | null>(null);
+  const [card, setCard] = useState<models.models.FlashcardModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +50,7 @@ function CardReview() {
         return;
       }
 
-      const cardData = await api.getCard(numericDeckId, numericCardId);
+      const cardData = await GetFlashcard(numericDeckId, numericCardId);
       setCard(cardData);
       setError(null);
     } catch (err) {
@@ -70,7 +77,7 @@ function CardReview() {
 
     setReviewing(true);
     try {
-      await api.reviewCard(numericDeckId, numericCardId, grade);
+      await ReviewFlashcard(numericDeckId, numericCardId, grade);
       navigate(`/decks/${numericDeckId}/cards`);
     } catch (err) {
       setError('Failed to submit review');
@@ -124,7 +131,7 @@ function CardReview() {
                     Front
                   </Typography>
                   <Typography variant="body1" whiteSpace="pre-wrap">
-                    {card.front}
+                    {card.Front}
                   </Typography>
                 </Box>
 
@@ -135,7 +142,7 @@ function CardReview() {
                         Back
                       </Typography>
                       <Typography variant="body1" whiteSpace="pre-wrap">
-                        {card.back}
+                        {card.Back}
                       </Typography>
                     </Box>
                   </Fade>
@@ -195,19 +202,19 @@ function CardReview() {
           </Card>
 
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            {card.lastReviewed && (
+            {card.LastReviewed && (
               <Chip
                 icon={<AccessTimeIcon />}
-                label={`Last reviewed: ${new Date(card.lastReviewed).toLocaleDateString()}`}
+                label={`Last reviewed: ${new Date(card.LastReviewed).toLocaleDateString()}`}
                 variant="outlined"
               />
             )}
-            {card.difficulty && (
+            {card.Difficulty && (
               <Chip
-                label={`Current difficulty: ${card.difficulty}`}
+                label={`Current difficulty: ${card.Difficulty}`}
                 color={
-                  card.difficulty === 'Easy' ? 'success' :
-                    card.difficulty === 'Hard' ? 'error' : 'info'
+                  card.Difficulty === 'Easy' ? 'success' :
+                    card.Difficulty === 'Hard' ? 'error' : 'info'
                 }
                 variant="outlined"
               />

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Button, Card, CardContent, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import { DeleteFlashcard } from '../../../wailsjs/go/api/FlashcardImpl';
 
 interface Flashcard {
   front: string;
@@ -23,10 +24,16 @@ function CardDelete() {
     navigate(`/decks/${deckId}/cards/${cardId}`);
   };
 
-  const handleDelete = () => {
-    // TODO: Implement actual delete logic here
-    console.log(`Deleting card ${cardId} from deck ${deckId}`);
-    navigate(`/decks/${deckId}/cards`);
+  const handleDelete = async () => {
+    if (!deckId) return;
+    
+    try {
+      if (!cardId) return;
+      await DeleteFlashcard(parseInt(deckId), parseInt(cardId));
+      navigate(`/decks/${deckId}/cards`);
+    } catch (err) {
+      console.error('Error deleting card:', err);
+    }
   };
 
   return (

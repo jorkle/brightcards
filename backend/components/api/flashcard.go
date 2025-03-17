@@ -9,26 +9,29 @@ import (
 )
 
 type Flashcard interface {
-	Get(deckId int, cardId int) (models.FlashcardModel, error)
-	GetAll(deckId int) ([]models.FlashcardModel, error)
-	GetDue(deckId int) ([]models.FlashcardModel, error)
-	Create(deckId int, front string, back string) (models.FlashcardModel, error)
-	Update(card models.FlashcardModel) (models.FlashcardModel, error)
+	GetFlashcard(deckId int, cardId int) (models.FlashcardModel, error)
+	GetAllFlashcards(deckId int) ([]models.FlashcardModel, error)
+	GetDueFlashcards(deckId int) ([]models.FlashcardModel, error)
+	CreateFlashcard(deckId int, front string, back string) (models.FlashcardModel, error)
+	UpdateFlashcard(card models.FlashcardModel) (models.FlashcardModel, error)
+	DeleteFlashcard(deckId int, cardId int) (models.FlashcardModel, error)
+	ReviewFlashcard(deckId int, cardId int, grade string) error
+	UpdateGrading(grade string) error
 }
 
-func (f *FlashcardImpl) Get(deckId int, cardId int) (models.FlashcardModel, error) {
+func (f *FlashcardImpl) GetFlashcard(deckId int, cardId int) (models.FlashcardModel, error) {
 	return database.Card(deckId, cardId)
 }
 
-func (f *FlashcardImpl) GetAll(deckId int) ([]models.FlashcardModel, error) {
+func (f *FlashcardImpl) GetAllFlashcards(deckId int) ([]models.FlashcardModel, error) {
 	return database.Cards(deckId)
 }
 
-func (f *FlashcardImpl) GetDue(deckId int) ([]models.FlashcardModel, error) {
+func (f *FlashcardImpl) GetDueFlashcards(deckId int) ([]models.FlashcardModel, error) {
 	return database.GetDueCards(deckId)
 }
 
-func (f *FlashcardImpl) Create(deckId int, front string, back string) (models.FlashcardModel, error) {
+func (f *FlashcardImpl) CreateFlashcard(deckId int, front string, back string) (models.FlashcardModel, error) {
 	card := models.FlashcardModel{
 		DeckId: deckId,
 		Front:  front,
@@ -37,11 +40,11 @@ func (f *FlashcardImpl) Create(deckId int, front string, back string) (models.Fl
 	return database.CreateCard(card)
 }
 
-func (f *FlashcardImpl) Update(card models.FlashcardModel) (models.FlashcardModel, error) {
+func (f *FlashcardImpl) UpdateFlashcard(card models.FlashcardModel) (models.FlashcardModel, error) {
 	return database.UpdateCard(card)
 }
 
-func (f *FlashcardImpl) Delete(deckId int, cardId int) (models.FlashcardModel, error) {
+func (f *FlashcardImpl) DeleteFlashcard(deckId int, cardId int) (models.FlashcardModel, error) {
 	card, err := database.Card(deckId, cardId)
 	if err != nil {
 		return models.FlashcardModel{}, err
@@ -55,7 +58,7 @@ func (f *FlashcardImpl) Delete(deckId int, cardId int) (models.FlashcardModel, e
 	return card, nil
 }
 
-func (f *FlashcardImpl) Review(deckId int, cardId int, grade string) error {
+func (f *FlashcardImpl) ReviewFlashcard(deckId int, cardId int, grade string) error {
 	card, err := database.Card(deckId, cardId)
 	if err != nil {
 		return err

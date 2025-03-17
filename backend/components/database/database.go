@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"os"
 	"path"
 
@@ -42,10 +41,30 @@ func CreateDatabaseFile() error {
 	return nil
 }
 
-func InitDatabase() error {
+func Init() error {
 	if DB != nil {
-		return errors.New("database already initialized")
+		return nil
 	}
+	sqliteFile := "bcards.db"
+	userConfigDir, err := os.UserConfigDir()
+	if err != nil {
+		return err
+	}
+	storageDir := path.Join(userConfigDir, "brightcards")
+	_, err = os.Stat(path.Join(storageDir, sqliteFile))
+	if errors.Is(err, os.ErrNotExist) {
+		CreateDatabaseFile()
+	}
+	DB, err = sql.Open("sqlite3", path.Join(storageDir, sqliteFile))
+	if err != nil {
+		return err
+	}
+
+	InitDatabase()
+	return nil
+}
+
+func InitDatabase() error {
 	_, err := DB.Exec("CREATE TABLE IF NOT EXISTS flashcards (id INTEGER PRIMARY KEY AUTOINCREMENT, front TEXT, back TEXT, deck_id INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP, fsrs_stability REAL DEFAULT 0.0, fsrs_difficulty REAL DEFAULT 0.0, schedule_due REAL DEFAULT 0.0)")
 	if err != nil {
 		return err
@@ -57,41 +76,15 @@ func InitDatabase() error {
 	return nil
 }
 
-func Init() error {
-	sqliteFile := "bcards.db"
-	userConfigDir, err := os.UserConfigDir()
-	if err != nil {
-		return err
-	}
-	storageDir := path.Join(userConfigDir, "brightcards")
-	DB, err = sql.Open("sqlite3", fmt.Sprintf("file:%s", path.Join(storageDir, sqliteFile)))
-	if os.IsNotExist(err) {
-		CreateDatabaseFile()
-		erro := InitDatabase()
-		if erro != nil {
-			return erro
-		}
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	err = InitDatabase()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func Card(deckId int, cardId int) (models.FlashcardModel, error) {
-	if DB != nil {
-		Init()
+	if err := Init(); err != nil {
+		return models.FlashcardModel{}, err
 	}
 
 	results := DB.QueryRow("SELECT * FROM flashcards WHERE deck_id = ? AND id = ?", deckId, cardId)
 
 	card := models.FlashcardModel{}
-	err := results.Scan(&card.ID, &card.Front, &card.Back, &card.DeckId, &card.CreatedAt, &card.UpdatedAt)
+	err := results.Scan(&card.ID, &card.Front, &card.Back, &card.DeckId, &card.CreatedAt, &card.UpdatedAt, &card.FSRSStability, &card.FSRSDifficulty, &card.DaysTillDue)
 	if err != nil {
 		return models.FlashcardModel{}, err
 	}
@@ -99,8 +92,8 @@ func Card(deckId int, cardId int) (models.FlashcardModel, error) {
 }
 
 func UpdateCard(card models.FlashcardModel) (models.FlashcardModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return models.FlashcardModel{}, err
 	}
 
 	_, err := DB.Exec("UPDATE flashcards SET front = ?, back = ?, fsrs_stability = ?, fsrs_difficulty = ?, schedule_due = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deck_id = ?", card.Front, card.Back, card.FSRSStability, card.FSRSDifficulty, card.DaysTillDue, card.ID, card.DeckId)
@@ -112,19 +105,20 @@ func UpdateCard(card models.FlashcardModel) (models.FlashcardModel, error) {
 }
 
 func Cards(deckId int) ([]models.FlashcardModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return []models.FlashcardModel{}, err
 	}
 
 	results, err := DB.Query("SELECT * FROM flashcards WHERE deck_id = ?", deckId)
 	if err != nil {
 		return []models.FlashcardModel{}, err
 	}
-
+	defer results.Close()
 	cards := []models.FlashcardModel{}
 	for results.Next() {
 		card := models.FlashcardModel{}
-		err = results.Scan(&card.ID, &card.Front, &card.Back, &card.DeckId, &card.CreatedAt, &card.UpdatedAt)
+
+		err = results.Scan(&card.ID, &card.Front, &card.Back, &card.DeckId, &card.CreatedAt, &card.UpdatedAt, &card.FSRSStability, &card.FSRSDifficulty, &card.DaysTillDue)
 		if err != nil {
 			return []models.FlashcardModel{}, err
 		}
@@ -134,21 +128,26 @@ func Cards(deckId int) ([]models.FlashcardModel, error) {
 }
 
 func CreateCard(card models.FlashcardModel) (models.FlashcardModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return models.FlashcardModel{}, err
 	}
 
-	_, err := DB.Exec("INSERT INTO flashcards (front, back, deck_id, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", card.Front, card.Back, card.DeckId)
+	result, err := DB.Exec("INSERT INTO flashcards (front, back, deck_id, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", card.Front, card.Back, card.DeckId)
 	if err != nil {
 		return models.FlashcardModel{}, err
 	}
 
-	return card, nil
+	cardId, err := result.LastInsertId()
+	if err != nil {
+		return models.FlashcardModel{}, err
+	}
+
+	return Card(card.DeckId, int(cardId))
 }
 
 func UpdateGrading(cardId int, stability float64, difficulty float64, daysTillDue float64) error {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return err
 	}
 
 	_, err := DB.Exec("UPDATE flashcards SET fsrs_stability = ?, fsrs_difficulty = ?, schedule_due = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
@@ -161,8 +160,8 @@ func UpdateGrading(cardId int, stability float64, difficulty float64, daysTillDu
 }
 
 func Deck(deckId int) (DeckModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return DeckModel{}, err
 	}
 
 	result := DB.QueryRow("SELECT * FROM decks WHERE id = ?", deckId)
@@ -177,15 +176,15 @@ func Deck(deckId int) (DeckModel, error) {
 }
 
 func Decks() ([]DeckModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return []DeckModel{}, err
 	}
 
 	results, err := DB.Query("SELECT * FROM decks")
 	if err != nil {
 		return []DeckModel{}, err
 	}
-
+	defer results.Close()
 	decks := []DeckModel{}
 	for results.Next() {
 		deck := DeckModel{}
@@ -199,8 +198,8 @@ func Decks() ([]DeckModel, error) {
 }
 
 func CreateDeck(name string, description string, purpose string) (DeckModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return DeckModel{}, err
 	}
 
 	result, err := DB.Exec("INSERT INTO decks (name, description, purpose, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
@@ -218,8 +217,8 @@ func CreateDeck(name string, description string, purpose string) (DeckModel, err
 }
 
 func UpdateDeck(deckId int, name string, description string, purpose string) (DeckModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return DeckModel{}, err
 	}
 
 	_, err := DB.Exec("UPDATE decks SET name = ?, description = ?, purpose = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
@@ -232,8 +231,8 @@ func UpdateDeck(deckId int, name string, description string, purpose string) (De
 }
 
 func DeleteDeck(deckId int) error {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return err
 	}
 
 	// First delete all flashcards associated with the deck
@@ -252,15 +251,15 @@ func DeleteDeck(deckId int) error {
 }
 
 func GetDueCards(deckId int) ([]models.FlashcardModel, error) {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return []models.FlashcardModel{}, err
 	}
 
 	results, err := DB.Query("SELECT * FROM flashcards WHERE deck_id = ? AND schedule_due <= CURRENT_TIMESTAMP", deckId)
 	if err != nil {
 		return []models.FlashcardModel{}, err
 	}
-
+	defer results.Close()
 	cards := []models.FlashcardModel{}
 	for results.Next() {
 		card := models.FlashcardModel{}
@@ -275,8 +274,8 @@ func GetDueCards(deckId int) ([]models.FlashcardModel, error) {
 }
 
 func ReviewCard(deckId int, cardId int, stability float64, difficulty float64, daysTillDue float64) error {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return err
 	}
 
 	_, err := DB.Exec("UPDATE flashcards SET fsrs_stability = ?, fsrs_difficulty = ?, schedule_due = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND deck_id = ?",
@@ -289,8 +288,8 @@ func ReviewCard(deckId int, cardId int, stability float64, difficulty float64, d
 }
 
 func DeleteCard(cardId int) error {
-	if DB == nil {
-		Init()
+	if err := Init(); err != nil {
+		return err
 	}
 
 	_, err := DB.Exec("DELETE FROM flashcards WHERE id = ?", cardId)

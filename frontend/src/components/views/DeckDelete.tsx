@@ -26,13 +26,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
-import { Deck, ExportFormat } from '../../lib/wailsjs/go/models';
-import * as api from '../../lib/wailsjs/go/api';
+import * as models from '../../../wailsjs/go/models';
+import { GetDeck, DeleteDeck, ExportDeck } from '../../../wailsjs/go/api/DeckImpl';
+import { ExportFormat } from '../../lib/wailsjs/go/models';
 
 function DeckDelete() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
-  const [deck, setDeck] = useState<Deck | null>(null);
+  const [deck, setDeck] = useState<models.models.DeckModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
@@ -48,7 +49,7 @@ function DeckDelete() {
   const loadDeck = async () => {
     try {
       if (!deckId) return;
-      const deckData = await api.getDeck(parseInt(deckId));
+      const deckData = await GetDeck(parseInt(deckId));
       setDeck(deckData);
       setError(null);
     } catch (err) {
@@ -73,9 +74,9 @@ function DeckDelete() {
     try {
       const format: ExportFormat = {
         type,
-        filename: `${deck.name}_${new Date().toISOString().split('T')[0]}`
+        filename: `${deck.Name}_${new Date().toISOString().split('T')[0]}`
       };
-      const filePath = await api.exportDeck(deck.id, format);
+      const filePath = await ExportDeck(deck.ID, "anki");
       console.log('Exported to:', filePath);
       // TODO: Show success notification
     } catch (err) {
@@ -99,7 +100,7 @@ function DeckDelete() {
     if (!deck || deleteText !== 'DELETE') return;
     setDeleting(true);
     try {
-      await api.deleteDeck(deck.id);
+      await DeleteDeck(deck.ID);
       navigate('/decks');
     } catch (err) {
       setError('Failed to delete deck');
@@ -137,29 +138,24 @@ function DeckDelete() {
             <Stack spacing={2}>
               <Box>
                 <Typography variant="h5" gutterBottom>
-                  {deck.name}
+                  {deck.Name}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  {deck.description}
+                  {deck.Description}
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Chip
-                  icon={<AutoStoriesIcon />}
-                  label={`${deck.cardCount} cards`}
-                  variant="outlined"
-                />
-                {deck.lastReviewed && (
+                {deck.LastReviewed && (
                   <Chip
                     icon={<AccessTimeIcon />}
-                    label={`Last reviewed: ${new Date(deck.lastReviewed).toLocaleDateString()}`}
+                    label={`Last reviewed: ${new Date(deck.LastReviewed).toLocaleDateString()}`}
                     variant="outlined"
                   />
                 )}
                 <Chip
                   icon={<WarningAmberIcon />}
-                  label={`Created: ${new Date(deck.createdAt).toLocaleDateString()}`}
+                  label={`Created: ${new Date(deck.CreatedAt).toLocaleDateString()}`}
                   variant="outlined"
                 />
               </Box>
@@ -245,7 +241,7 @@ function DeckDelete() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            You are about to delete <strong>{deck.name}</strong> containing {deck.cardCount} flashcards.
+            You are about to delete <strong>{deck.Name}</strong>.
             This action cannot be undone and all associated data will be permanently lost.
           </DialogContentText>
           <Box sx={{ mt: 2 }}>

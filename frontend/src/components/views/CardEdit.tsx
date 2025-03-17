@@ -14,13 +14,13 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { Flashcard } from '../../lib/wailsjs/go/models';
-import * as api from '../../lib/wailsjs/go/api';
+import * as models from '../../../wailsjs/go/models';
+import { GetFlashcard, UpdateFlashcard } from '../../../wailsjs/go/api/FlashcardImpl';
 
 function CardEdit() {
   const { deckId, cardId } = useParams<{ deckId: string; cardId: string }>();
   const navigate = useNavigate();
-  const [card, setCard] = useState<Flashcard | null>(null);
+  const [card, setCard] = useState<models.models.FlashcardModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,11 +45,11 @@ function CardEdit() {
         return;
       }
 
-      const cardData = await api.getCard(numericDeckId, numericCardId);
+      const cardData = await GetFlashcard(numericDeckId, numericCardId);
       setCard(cardData);
       setFormData({
-        front: cardData.front,
-        back: cardData.back
+        front: cardData.Front,
+        back: cardData.Back
       });
       setError(null);
     } catch (err) {
@@ -77,10 +77,10 @@ function CardEdit() {
 
     setSaving(true);
     try {
-      const updatedCard = await api.updateCard({
+      const updatedCard = await UpdateFlashcard({
         ...card,
-        front: formData.front,
-        back: formData.back
+        Front: formData.front,
+        Back: formData.back
       });
       navigate(`/decks/${deckId}/cards`);
     } catch (err) {
@@ -149,19 +149,19 @@ function CardEdit() {
                   />
                 </Box>
 
-                {card.lastReviewed && (
+                {card.LastReviewed && (
                   <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     <Chip
                       icon={<AccessTimeIcon />}
-                      label={`Last reviewed: ${new Date(card.lastReviewed).toLocaleDateString()}`}
+                      label={`Last reviewed: ${new Date(card.LastReviewed).toLocaleDateString()}`}
                       variant="outlined"
                     />
-                    {card.difficulty && (
+                    {card.Difficulty && (
                       <Chip
-                        label={`Difficulty: ${card.difficulty}`}
+                        label={`Difficulty: ${card.Difficulty}`}
                         color={
-                          card.difficulty === 'Easy' ? 'success' :
-                          card.difficulty === 'Hard' ? 'error' : 'info'
+                          card.Difficulty === 'Easy' ? 'success' :
+                          card.Difficulty === 'Hard' ? 'error' : 'info'
                         }
                         variant="outlined"
                       />

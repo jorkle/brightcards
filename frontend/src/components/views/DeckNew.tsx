@@ -14,7 +14,8 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import * as api from '../../lib/wailsjs/go/api';
+import * as models from '../../../wailsjs/go/models';
+import { CreateDeck } from '../../../wailsjs/go/api/DeckImpl';
 
 function DeckNew() {
   const navigate = useNavigate();
@@ -41,12 +42,12 @@ function DeckNew() {
     event.preventDefault();
     setSaving(true);
     try {
-      const newDeck = await api.createDeck(
+      const newDeck = await CreateDeck(
         formData.name, 
         formData.description,
         formData.purpose
       );
-      navigate(`/decks/${newDeck.id}`);
+      navigate(`/decks/${newDeck.ID}`);
     } catch (err) {
       setError('Failed to create deck');
       console.error('Error creating deck:', err);

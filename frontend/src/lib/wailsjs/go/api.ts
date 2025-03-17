@@ -1,6 +1,4 @@
-import { Deck, Flashcard, ExportFormat, ReviewGrade } from './models';
-
-// These functions will be automatically bound by Wails to your Go backend
+import { Deck, Flashcard, ExportFormat } from './models';
 declare global {
   interface Window {
     // Deck operations
@@ -18,7 +16,6 @@ declare global {
     CreateCard: (deckId: number, front: string, back: string) => Promise<Flashcard>;
     UpdateCard: (card: Flashcard) => Promise<Flashcard>;
     DeleteCard: (deckId: number, cardId: number) => Promise<void>;
-    ReviewCard: (deckId: number, cardId: number, grade: ReviewGrade) => Promise<void>;
   }
 }
 
@@ -71,7 +68,3 @@ export const updateCard = async (card: Flashcard): Promise<Flashcard> => {
 export const deleteCard = async (deckId: number, cardId: number): Promise<void> => {
   return await window.DeleteCard(deckId, cardId);
 };
-
-export const reviewCard = async (deckId: number, cardId: number, grade: ReviewGrade): Promise<void> => {
-  return await window.ReviewCard(deckId, cardId, grade);
-}; 

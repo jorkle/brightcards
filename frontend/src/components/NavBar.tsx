@@ -10,7 +10,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 
 function NavBar() {
   return (
-    <AppBar position="static">
+    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography align='left' variant="h6">
           Bright Cards

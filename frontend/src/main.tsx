@@ -28,6 +28,7 @@ import FeynmanReview from './components/views/FeynmanReview';
 import Settings from './components/views/Settings';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import Toolbar from '@mui/material/Toolbar';
 
 const theme = createTheme({
   palette: {
@@ -56,24 +57,33 @@ if (container != null) {
             backgroundColor: 'inherit'
           }}>
             <NavBar />
-            <Routes>
-              <Route path="/" element={<Overview />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/decks/new" element={<DeckNew />} />
-              <Route path="/decks/:deckId/edit" element={<DeckEdit />} />
-              <Route path="/decks/:deckId/delete" element={<DeckDelete />} />
-              <Route path="/decks/:deckId/review" element={<DeckReview />} />
-              <Route path="/decks/:deckId/cards/new" element={<CardCreate />} />
-              <Route path="/decks/:deckId/cards/:cardId/edit" element={<CardEdit />} />
-              <Route path="/decks/:deckId/cards/:cardId/review" element={<CardReview />} />
-              <Route path="/decks/:deckId/cards/:cardId/delete" element={<CardDelete />} />
-              <Route path="/decks/:deckId/cards" element={<Cards />} />
-              <Route path="/decks/:deckId" element={<Deck />} />
-              <Route path="/decks" element={<Decks />} />
-              <Route path="/review" element={<ReviewAll />} />
-              <Route path="/feynman-review/:deckId/:cardId" element={<FeynmanReview />} />
-            </Routes>
+            <Toolbar />
+            <div style={{
+              flexGrow: 1,
+              overflow: 'auto',
+              padding: '20px',
+              height: 'calc(100vh - 64px)',
+              boxSizing: 'border-box'
+            }}>
+              <Routes>
+                <Route path="/" element={<Overview />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/decks/new" element={<DeckNew />} />
+                <Route path="/decks/:deckId/edit" element={<DeckEdit />} />
+                <Route path="/decks/:deckId/delete" element={<DeckDelete />} />
+                <Route path="/decks/:deckId/review" element={<DeckReview />} />
+                <Route path="/decks/:deckId/cards/new" element={<CardCreate />} />
+                <Route path="/decks/:deckId/cards/:cardId/edit" element={<CardEdit />} />
+                <Route path="/decks/:deckId/cards/:cardId/review" element={<CardReview />} />
+                <Route path="/decks/:deckId/cards/:cardId/delete" element={<CardDelete />} />
+                <Route path="/decks/:deckId/cards" element={<Cards />} />
+                <Route path="/decks/:deckId" element={<Deck />} />
+                <Route path="/decks" element={<Decks />} />
+                <Route path="/review" element={<ReviewAll />} />
+                <Route path="/feynman-review/:deckId/:cardId" element={<FeynmanReview />} />
+              </Routes>
+            </div>
           </div>
         </Router>
       </ThemeProvider>

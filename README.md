@@ -37,6 +37,11 @@ VirusTotal: [https://www.virustotal.com/gui/file/05f742f73a99dc6732106e6ee75c697
 ![](https://i.imgur.com/XWLsBTc.png)
 ![](https://i.imgur.com/kh7P7sk.png)
 
+## Reviewed cards page (due dates based off of FSRS v5 algorithm)
+![](https://i.imgur.com/M4ZLzvO.png)
+
+## Review/Grade flashcard (for FSRS v5 grading)
+![](https://i.imgur.com/6HhpxDJ.png)
 ## License
 
 [https://github.com/jorkle/brightcards/LICENSE]()

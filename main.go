@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/jorkle/brightcards/backend/components/ai/chat"
 	"github.com/jorkle/brightcards/backend/components/algorithms"
 	"github.com/jorkle/brightcards/backend/components/database"
 	"github.com/jorkle/brightcards/backend/components/models"
@@ -87,6 +88,14 @@ func (s *SettingsService) GetOpenAIKey() (string, error) {
 	return database.GetOpenAIKey()
 }
 
+// AIService provides functionality for AI-powered features
+type AIService struct{}
+
+// GenerateFlashcards generates flashcards from text using the OpenAI API
+func (a *AIService) GenerateFlashcards(inputText string, purpose string, maxCards int) ([]chat.Flashcard, error) {
+	return chat.GenerateFlashcards(inputText, purpose, maxCards)
+}
+
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
@@ -96,6 +105,7 @@ func main() {
 	deck := &DeckImpl{}
 	feynmanService := &FeynmanService{}
 	settingsService := &SettingsService{}
+	aiService := &AIService{}
 
 	// Initialize the OpenAI API key from environment variable or database
 	openaiApiKey := os.Getenv("OPENAI_API_KEY")
@@ -138,6 +148,7 @@ func main() {
 			deck,
 			feynmanService,
 			settingsService,
+			aiService,
 		},
 	})
 

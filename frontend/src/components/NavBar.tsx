@@ -5,7 +5,6 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { Link, useLocation } from 'react-router';
 import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { Box } from '@mui/material';
 
@@ -47,15 +46,17 @@ const NavBar = () => {
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
           {navButtons}
         </div>
-        <IconButton 
-          edge="end" 
-          color="inherit" 
-          aria-label="settings" 
-          component={Link} 
-          to="/settings"
-        >
-          <SettingsIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex' }}>
+          <IconButton 
+            edge="end" 
+            color="inherit" 
+            aria-label="settings" 
+            component={Link} 
+            to="/settings"
+          >
+            <SettingsIcon />
+          </IconButton>
+        </Box>
       </Toolbar>
     </AppBar>
   );

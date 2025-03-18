@@ -1,3 +1,22 @@
+export namespace chat {
+	
+	export class Flashcard {
+	    front: string;
+	    back: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Flashcard(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.front = source["front"];
+	        this.back = source["back"];
+	    }
+	}
+
+}
+
 export namespace models {
 	
 	export class DeckModel {

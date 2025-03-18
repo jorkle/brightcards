@@ -17,7 +17,7 @@ I created this as I was using Anki and wanted the benefit of spaced repetition b
 - Using the AI features requires an OpenAI API key to be configured. The OpenAI API requires credits, although they are inexpensive.
 
 ---
-Checksums:
+Checksums (SHA256):
 
 ```
 be0fb11d655c064f86db4842b1462fba1d91ed7499550960eb64327513ce90d2  ./bcards

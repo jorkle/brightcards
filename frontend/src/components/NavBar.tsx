@@ -11,7 +11,6 @@ import { Box } from '@mui/material';
 // Navigation links defined outside component to prevent recreation on each render
 const NAV_LINKS = [
   { path: "/decks", label: "Decks" },
-  { path: "/", label: "Overview" },
   { path: "/review", label: "Review" },
   { path: "/about", label: "About" }
 ];

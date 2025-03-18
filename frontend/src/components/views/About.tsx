@@ -1,6 +1,8 @@
 import React from 'react';
-import { Typography, Card, CardContent, Link } from '@mui/material';
+import * as runtime from '../../../wailsjs/runtime/runtime';
+import { Typography, Card, CardContent, Link, Box } from '@mui/material';
 import Grid from '@mui/material/Grid2';
+import { W } from 'react-router/dist/development/fog-of-war-CvttGpNz';
 
 function About() {
   return (
@@ -9,74 +11,83 @@ function About() {
         About Bright Cards
       </Typography>
       <Grid container spacing={2}>
-        <Grid size={12}>
-          <Card>
+        {/* Top left: App description */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h5" className="mb-2">
-                Spaced Repetition Algorithm
+                Features
               </Typography>
               <Typography variant="body1">
-                Our app leverages a spaced repetition algorithm to optimize your learning and retention. This method ensures that you review flashcards at the optimal intervals to maximize memory retention.
+                Bright Cards is a powerful open-source flashcard application leveraging AI and spaced repetition.
+
+                <Box component="ul" sx={{ pl: 2 }}>
+                  <li>AI-powered flashcard generation from the contents of your clipboard</li>
+                  <li>Spaced repetition algorithm (FSRS v5) for optimal learning</li>
+                  <li>Modified Feynman technique sessions for deeper understanding</li>
+                  <li>Releases for Windows, MacOS, and Linux</li>
+                </Box>
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={12}>
-          <Card>
+
+        {/* Top right: Credits and links */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h5" className="mb-2">
-                AI-Powered Flashcard Generation
+                Credits & Resources
               </Typography>
               <Typography variant="body1">
-                Generate flashcards from various sources such as audio dictation, web pages, clipboard, and YouTube videos. Our AI helps in creating accurate and relevant flashcards for your study needs.
+                <Box component="ul" sx={{ pl: 2 }}>
+                  <li>Created by Kyle Walters (<Link onClick={() => runtime.BrowserOpenURL("https://github.com/jorkle")} target="_blank" rel="noopener">Jorkle</Link>)</li>
+                  <li><Link onClick={() => runtime.BrowserOpenURL("https://github.com/jorkle/brightcards")} target="_blank" rel="noopener">GitHub Repository</Link></li>
+                  <li><Link onClick={() => runtime.BrowserOpenURL("https://github.com/jorkle/brightcards/wiki")} target="_blank" rel="noopener">Documentation</Link></li>
+                  <li>Powered by <Link onClick={() => runtime.BrowserOpenURL("https://github.com/open-spaced-repetition/fsrs4anki/wiki/abc-of-fsrs")} target="_blank" rel="noopener">FSRS v5 algorithm</Link></li>
+                  <li>Built with React, Material-UI, and other open source technologies</li>
+                </Box>
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={12}>
-          <Card>
+
+        {/* Bottom left: GitHub issues */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h5" className="mb-2">
-                Duplicate Detection
+                Support & Feedback
               </Typography>
               <Typography variant="body1">
-                Our AI detects and removes duplicate flashcards to keep your deck clean and efficient.
+                If you encounter any issues or have suggestions for improvement, please open an issue on our GitHub repository.
+
+                <Box sx={{ mt: 2 }}>
+                  To report an issue:
+                  <Box component="ol" sx={{ pl: 2 }}>
+                    <li>Go to the <Link onClick={() => runtime.BrowserOpenURL("https://github.com/jorkle/brightcards/issues")} target="_blank" rel="noopener">Issues page</Link></li>
+                    <li>Click "New Issue"</li>
+                    <li>Provide a clear description of the problem or suggestion</li>
+                    <li>Include steps to reproduce any bugs you've found</li>
+                  </Box>
+                </Box>
               </Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={12}>
-          <Card>
+
+        {/* Bottom right: API disclaimers */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h5" className="mb-2">
-                Feynman Sessions
+                Important Disclaimers
               </Typography>
-              <Typography variant="body1">
-                Engage in Feynman sessions where you explain flashcards out loud as if teaching a child. The AI identifies gaps in your understanding and helps you improve your knowledge.
+              <Typography variant="body1" paragraph>
+                Several features require an OpenAI API key to be entered in the settings. You must setup an API key with available usage credits via the OpenAI website to access these features. Go to <Link onClick={() => runtime.BrowserOpenURL("https://platform.openai.com/api-keys")} target="_blank" rel="noopener">OpenAI API Keys</Link> to create an API key.
               </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h5" className="mb-2">
-                About the Author
-              </Typography>
-              <Typography variant="body1">
-                This app was created by Kyle Walters (<Link href="https://github.com/jorkle">Jorkle</Link>), a passionate developer dedicated to enhancing learning experiences through technology.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h5" className="mb-2">
-                GitHub Repository
-              </Typography>
-              <Typography variant="body1">
-                Check out the source code and contribute to the project on our <Link href="https://github.com/jorkle/brightcards" target="_blank" rel="noopener">GitHub repository</Link>.
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                Please note: Your OpenAI API key is stored locally in a SQLite file. The only outgoing network traffic is to the OpenAI API. You assume all responsibility for API credits used and the operation of this software.
               </Typography>
             </CardContent>
           </Card>

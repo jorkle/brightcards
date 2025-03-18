@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { 
   Button, 
@@ -42,6 +42,122 @@ import SearchIcon from '@mui/icons-material/Search';
 import * as models from '../../../wailsjs/go/models';
 import { GetDeck } from '../../../wailsjs/go/main/DeckImpl';
 import { GetAllFlashcards, GetDueFlashcards, DeleteFlashcard } from '../../../wailsjs/go/main/FlashcardImpl';
+import { debounce } from 'lodash';
+
+// Define a type for MUI Chip color props
+type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+
+// CardItem component to optimize rendering of individual cards
+const CardItem = React.memo(({ 
+  card, 
+  isSelected, 
+  onSelect, 
+  onNavigate, 
+  getDifficultyColor 
+}: { 
+  card: models.models.FlashcardModel, 
+  isSelected: boolean, 
+  onSelect: (id: number) => void, 
+  onNavigate: (path: string) => void, 
+  getDifficultyColor: (difficulty?: string) => ChipColor 
+}) => {
+  const deckId = card.DeckId;
+  
+  return (
+    <ListItem
+      key={card.ID}
+      divider
+      sx={{
+        '&:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.04)',
+        },
+      }}
+      secondaryAction={
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          {card.Difficulty && (
+            <Chip 
+              label={card.Difficulty} 
+              size="small" 
+              color={getDifficultyColor(card.Difficulty)}
+              sx={{ mr: 2 }}
+            />
+          )}
+          <IconButton 
+            edge="end" 
+            aria-label="preview"
+            onClick={() => {
+              if (card.CardType === 'feynman') {
+                onNavigate(`/feynman-review/${deckId}/${card.ID}`);
+              } else {
+                onNavigate(`/decks/${deckId}/cards/${card.ID}/review`);
+              }
+            }}
+          >
+            <PreviewIcon />
+          </IconButton>
+          <IconButton 
+            edge="end" 
+            aria-label="edit"
+            onClick={() => onNavigate(`/decks/${deckId}/cards/${card.ID}/edit`)}
+          >
+            <EditIcon />
+          </IconButton>
+          <IconButton 
+            edge="end" 
+            aria-label="delete"
+            onClick={() => onNavigate(`/decks/${deckId}/cards/${card.ID}/delete`)}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      }
+    >
+      <ListItemIcon>
+        <Checkbox
+          checked={isSelected}
+          onChange={() => onSelect(card.ID)}
+          color="primary"
+        />
+      </ListItemIcon>
+      <ListItemText
+        primary={
+          <Typography
+            sx={{
+              display: '-webkit-box',
+              overflow: 'hidden',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+            }}
+          >
+            {card.Front}
+          </Typography>
+        }
+        secondary={
+          <Box sx={{ mt: 1 }}>
+            {card.CardType && (
+              <Chip 
+                label={card.CardType.charAt(0).toUpperCase() + card.CardType.slice(1)} 
+                size="small" 
+                color={card.CardType === 'feynman' ? 'secondary' : 'default'}
+                sx={{ mr: 1, mb: 1 }}
+              />
+            )}
+            {card.LastReviewed && (
+              <Typography variant="caption" display="block" color="text.secondary">
+                Last reviewed: {new Date(card.LastReviewed).toLocaleDateString()}
+              </Typography>
+            )}
+            {card.DueDate && (
+              <Typography variant="caption" display="block" color="text.secondary">
+                Due: {new Date(card.DueDate).toLocaleDateString()}
+              </Typography>
+            )}
+          </Box>
+        }
+      />
+    </ListItem>
+  );
+});
 
 function Cards() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -61,12 +177,8 @@ function Cards() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [deckId]);
-
-  const loadData = async () => {
-    console.log(deckId)
+  // Use useCallback to memoize functions
+  const loadData = useCallback(async () => {
     if (!deckId) return;
     const numericDeckId = parseInt(deckId, 10);
     if (isNaN(numericDeckId)) {
@@ -96,39 +208,49 @@ function Cards() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [deckId]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  useEffect(() => {
+    loadData();
+  }, [loadData]); // Only reload when loadData changes (which depends on deckId)
+
+  const handleTabChange = useCallback((event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     // Reset selection when changing tabs
     setSelectedCardIds([]);
     setSelectAll(false);
-  };
+  }, []);
 
-  const getDifficultyColor = (difficulty?: string) => {
+  const getDifficultyColor = useCallback((difficulty?: string): ChipColor => {
     switch (difficulty) {
       case 'Easy': return 'success';
       case 'Normal': return 'info';
       case 'Hard': return 'error';
       default: return 'default';
     }
-  };
+  }, []);
   
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-    // Reset selection when changing search
-    setSelectedCardIds([]);
-    setSelectAll(false);
-  };
+  // Debounce search to prevent too many re-renders during typing
+  const debouncedSearch = useMemo(() => 
+    debounce((value: string) => {
+      setSearchTerm(value);
+      setSelectedCardIds([]);
+      setSelectAll(false);
+    }, 300)
+  , []);
   
-  const handleCardTypeChange = (event: SelectChangeEvent) => {
+  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedSearch(event.target.value);
+  }, [debouncedSearch]);
+  
+  const handleCardTypeChange = useCallback((event: SelectChangeEvent) => {
     setSelectedCardType(event.target.value);
     // Reset selection when changing filter
     setSelectedCardIds([]);
     setSelectAll(false);
-  };
+  }, []);
   
-  const handleSelectCard = (cardId: number) => {
+  const handleSelectCard = useCallback((cardId: number) => {
     setSelectedCardIds(prev => {
       if (prev.includes(cardId)) {
         return prev.filter(id => id !== cardId);
@@ -136,9 +258,9 @@ function Cards() {
         return [...prev, cardId];
       }
     });
-  };
+  }, []);
   
-  const handleSelectAllCards = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectAllCards = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked;
     setSelectAll(checked);
     
@@ -152,15 +274,15 @@ function Cards() {
     } else {
       setSelectedCardIds([]);
     }
-  };
+  }, [tabValue, dueCards, cards, searchTerm, selectedCardType]);
   
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = useCallback(() => {
     if (selectedCardIds.length > 0) {
       setDeleteDialogOpen(true);
     }
-  };
+  }, [selectedCardIds]);
   
-  const confirmDeleteSelected = async () => {
+  const confirmDeleteSelected = useCallback(async () => {
     if (!deckId || selectedCardIds.length === 0) return;
     
     setDeleteLoading(true);
@@ -182,9 +304,10 @@ function Cards() {
     } finally {
       setDeleteLoading(false);
     }
-  };
+  }, [deckId, selectedCardIds, loadData]);
   
-  const filterCards = (
+  // Memoize expensive filtering operation
+  const filterCards = useCallback((
     cardsToFilter: models.models.FlashcardModel[],
     search: string,
     cardType: string
@@ -200,11 +323,30 @@ function Cards() {
       
       return matchesSearch && matchesType;
     });
-  };
+  }, []);
 
-  const renderCardList = (cardsToRender: models.models.FlashcardModel[]) => {
-    const filteredCards = filterCards(cardsToRender, searchTerm, selectedCardType);
-    
+  // Memoize filtered cards to prevent recalculation on every render
+  const filteredDueCards = useMemo(() => 
+    filterCards(dueCards, searchTerm, selectedCardType),
+    [dueCards, searchTerm, selectedCardType, filterCards]
+  );
+  
+  const filteredAllCards = useMemo(() => 
+    filterCards(cards, searchTerm, selectedCardType),
+    [cards, searchTerm, selectedCardType, filterCards]
+  );
+  
+  const currentFilteredCards = useMemo(() => 
+    tabValue === 0 ? filteredDueCards : filteredAllCards,
+    [tabValue, filteredDueCards, filteredAllCards]
+  );
+
+  const handleNavigate = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
+
+  // Memoized rendering of the card list to prevent unnecessary re-renders
+  const renderCardList = useCallback((filteredCards: models.models.FlashcardModel[]) => {
     return (
       <List>
         {filteredCards.length > 0 ? (
@@ -224,98 +366,14 @@ function Cards() {
               </ListItemIcon>
             </ListItem>
             {filteredCards.map((card) => (
-              <ListItem
+              <CardItem 
                 key={card.ID}
-                divider
-                sx={{
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                  },
-                }}
-                secondaryAction={
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    {card.Difficulty && (
-                      <Chip 
-                        label={card.Difficulty} 
-                        size="small" 
-                        color={getDifficultyColor(card.Difficulty)}
-                        sx={{ mr: 2 }}
-                      />
-                    )}
-                    <IconButton 
-                      edge="end" 
-                      aria-label="preview"
-                      onClick={() => {
-                        if (card.CardType === 'feynman') {
-                          navigate(`/feynman-review/${deckId}/${card.ID}`);
-                        } else {
-                          navigate(`/decks/${deckId}/cards/${card.ID}/review`);
-                        }
-                      }}
-                    >
-                      <PreviewIcon />
-                    </IconButton>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="edit"
-                      onClick={() => navigate(`/decks/${deckId}/cards/${card.ID}/edit`)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="delete"
-                      onClick={() => navigate(`/decks/${deckId}/cards/${card.ID}/delete`)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                }
-              >
-                <ListItemIcon>
-                  <Checkbox
-                    checked={selectedCardIds.includes(card.ID)}
-                    onChange={() => handleSelectCard(card.ID)}
-                    color="primary"
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography
-                      sx={{
-                        display: '-webkit-box',
-                        overflow: 'hidden',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: 2,
-                      }}
-                    >
-                      {card.Front}
-                    </Typography>
-                  }
-                  secondary={
-                    <Box sx={{ mt: 1 }}>
-                      {card.CardType && (
-                        <Chip 
-                          label={card.CardType.charAt(0).toUpperCase() + card.CardType.slice(1)} 
-                          size="small" 
-                          color={card.CardType === 'feynman' ? 'secondary' : 'default'}
-                          sx={{ mr: 1, mb: 1 }}
-                        />
-                      )}
-                      {card.LastReviewed && (
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          Last reviewed: {new Date(card.LastReviewed).toLocaleDateString()}
-                        </Typography>
-                      )}
-                      {card.DueDate && (
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          Due: {new Date(card.DueDate).toLocaleDateString()}
-                        </Typography>
-                      )}
-                    </Box>
-                  }
-                />
-              </ListItem>
+                card={card}
+                isSelected={selectedCardIds.includes(card.ID)}
+                onSelect={handleSelectCard}
+                onNavigate={handleNavigate}
+                getDifficultyColor={getDifficultyColor}
+              />
             ))}
           </>
         ) : (
@@ -325,7 +383,7 @@ function Cards() {
         )}
       </List>
     );
-  };
+  }, [selectAll, handleSelectAllCards, selectedCardIds, handleSelectCard, handleNavigate, getDifficultyColor]);
 
   if (loading) {
     return (
@@ -342,9 +400,6 @@ function Cards() {
       </Alert>
     );
   }
-  
-  const currentCards = tabValue === 0 ? dueCards : cards;
-  const filteredCardCount = filterCards(currentCards, searchTerm, selectedCardType).length;
 
   return (
     <div className="p-4">
@@ -378,7 +433,6 @@ function Cards() {
                   fullWidth
                   variant="outlined"
                   placeholder="Search flashcards..."
-                  value={searchTerm}
                   onChange={handleSearchChange}
                   slotProps={{
                     input: {
@@ -422,12 +476,11 @@ function Cards() {
           </Box>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Showing {filteredCardCount} of {currentCards.length} cards
+            Showing {currentFilteredCards.length} of {tabValue === 0 ? dueCards.length : cards.length} cards
           </Typography>
 
           <Box sx={{ mt: 2 }}>
-            {tabValue === 0 && renderCardList(dueCards)}
-            {tabValue === 1 && renderCardList(cards)}
+            {renderCardList(currentFilteredCards)}
           </Box>
         </CardContent>
       </Card>
@@ -465,4 +518,4 @@ function Cards() {
   );
 }
 
-export default Cards
+export default React.memo(Cards);

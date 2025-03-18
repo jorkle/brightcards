@@ -1,4 +1,5 @@
-import React from 'react'
+/// <reference types="lodash" />
+import React, { Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import ReactDOM from "react-dom/client";
 import * as runtime from '../wailsjs/runtime/runtime'
@@ -10,26 +11,30 @@ import {
 } from "react-router";
 import './style.css'
 import NavBar from './components/NavBar';
+// Import core components normally
 import Overview from './components/views/Overview';
-import About from './components/views/About';
-import Decks from './components/views/Decks';
-import ReviewAll from './components/views/ReviewAll';
-import Deck from './components/views/Deck';
-import DeckEdit from './components/views/DeckEdit';
-import DeckDelete from './components/views/DeckDelete';
-import DeckNew from './components/views/DeckNew';
-import DeckReview from './components/views/DeckReview';
-import Cards from './components/views/Cards';
-import CardCreate from './components/views/CardCreate';
-import CardEdit from './components/views/CardEdit';
-import CardReview from './components/views/CardReview';
-import CardDelete from './components/views/CardDelete';
-import FeynmanReview from './components/views/FeynmanReview';
-import Settings from './components/views/Settings';
+// Lazy load everything else
+const About = lazy(() => import('./components/views/About'));
+const Decks = lazy(() => import('./components/views/Decks'));
+const ReviewAll = lazy(() => import('./components/views/ReviewAll'));
+const Deck = lazy(() => import('./components/views/Deck'));
+const DeckEdit = lazy(() => import('./components/views/DeckEdit'));
+const DeckDelete = lazy(() => import('./components/views/DeckDelete'));
+const DeckNew = lazy(() => import('./components/views/DeckNew'));
+const DeckReview = lazy(() => import('./components/views/DeckReview'));
+const Cards = lazy(() => import('./components/views/Cards'));
+const CardCreate = lazy(() => import('./components/views/CardCreate'));
+const CardEdit = lazy(() => import('./components/views/CardEdit'));
+const CardReview = lazy(() => import('./components/views/CardReview'));
+const CardDelete = lazy(() => import('./components/views/CardDelete'));
+const FeynmanReview = lazy(() => import('./components/views/FeynmanReview'));
+const Settings = lazy(() => import('./components/views/Settings'));
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
+import { CircularProgress, Box } from '@mui/material';
 
+// Memoize theme creation to prevent unnecessary recalculations
 const theme = createTheme({
   palette: {
     mode: 'dark',
@@ -41,6 +46,13 @@ const theme = createTheme({
     },
   },
 });
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+    <CircularProgress />
+  </Box>
+);
 
 const container = document.getElementById('root')
 
@@ -65,24 +77,26 @@ if (container != null) {
               height: 'calc(100vh - 64px)',
               boxSizing: 'border-box'
             }}>
-              <Routes>
-                <Route path="/" element={<Overview />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/decks/new" element={<DeckNew />} />
-                <Route path="/decks/:deckId/edit" element={<DeckEdit />} />
-                <Route path="/decks/:deckId/delete" element={<DeckDelete />} />
-                <Route path="/decks/:deckId/review" element={<DeckReview />} />
-                <Route path="/decks/:deckId/cards/new" element={<CardCreate />} />
-                <Route path="/decks/:deckId/cards/:cardId/edit" element={<CardEdit />} />
-                <Route path="/decks/:deckId/cards/:cardId/review" element={<CardReview />} />
-                <Route path="/decks/:deckId/cards/:cardId/delete" element={<CardDelete />} />
-                <Route path="/decks/:deckId/cards" element={<Cards />} />
-                <Route path="/decks/:deckId" element={<Deck />} />
-                <Route path="/decks" element={<Decks />} />
-                <Route path="/review" element={<ReviewAll />} />
-                <Route path="/feynman-review/:deckId/:cardId" element={<FeynmanReview />} />
-              </Routes>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Overview />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/decks/new" element={<DeckNew />} />
+                  <Route path="/decks/:deckId/edit" element={<DeckEdit />} />
+                  <Route path="/decks/:deckId/delete" element={<DeckDelete />} />
+                  <Route path="/decks/:deckId/review" element={<DeckReview />} />
+                  <Route path="/decks/:deckId/cards/new" element={<CardCreate />} />
+                  <Route path="/decks/:deckId/cards/:cardId/edit" element={<CardEdit />} />
+                  <Route path="/decks/:deckId/cards/:cardId/review" element={<CardReview />} />
+                  <Route path="/decks/:deckId/cards/:cardId/delete" element={<CardDelete />} />
+                  <Route path="/decks/:deckId/cards" element={<Cards />} />
+                  <Route path="/decks/:deckId" element={<Deck />} />
+                  <Route path="/decks" element={<Decks />} />
+                  <Route path="/review" element={<ReviewAll />} />
+                  <Route path="/feynman-review/:deckId/:cardId" element={<FeynmanReview />} />
+                </Routes>
+              </Suspense>
             </div>
           </div>
         </Router>

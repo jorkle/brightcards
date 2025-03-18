@@ -13,7 +13,8 @@ import {
   FormControlLabel,
   RadioGroup,
   Radio,
-  FormLabel
+  FormLabel,
+  Stack
 } from '@mui/material';
 import { CreateFlashcard } from '../../../wailsjs/go/main/FlashcardImpl';
 
@@ -26,6 +27,14 @@ const CardCreate: React.FC = () => {
   const [cardType, setCardType] = useState<string>('standard');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const resetForm = () => {
+    setFront('');
+    setBack('');
+    // Keep the same card type for better UX when adding multiple cards of same type
+    setError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,14 +57,21 @@ const CardCreate: React.FC = () => {
     
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
     
     try {
       await CreateFlashcard(parseInt(deckId), front, back, cardType);
-      navigate(`/deck/${deckId}/cards`);
+      setSuccessMessage('Flashcard created successfully!');
+      resetForm();
     } catch (err) {
       setError(`Failed to create flashcard: ${err}`);
+    } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCloseSuccessMessage = () => {
+    setSuccessMessage(null);
   };
 
   return (
@@ -70,79 +86,99 @@ const CardCreate: React.FC = () => {
         </Alert>
       )}
       
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={handleCloseSuccessMessage}>
+          {successMessage}
+        </Alert>
+      )}
+      
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit}>
-            <FormControl component="fieldset" sx={{ mb: 3 }}>
-              <FormLabel component="legend">Card Type</FormLabel>
-              <RadioGroup
-                row
-                value={cardType}
-                onChange={(e) => setCardType(e.target.value)}
-              >
-                <FormControlLabel 
-                  value="standard" 
-                  control={<Radio />} 
-                  label="Standard Flashcard" 
-                />
-                <FormControlLabel 
-                  value="feynman" 
-                  control={<Radio />} 
-                  label="Feynman Flashcard" 
-                />
-              </RadioGroup>
-            </FormControl>
-            
-            <TextField
-              label={cardType === 'standard' ? "Front Side" : "Concept to Explain"}
-              fullWidth
-              multiline
-              rows={4}
-              value={front}
-              onChange={(e) => setFront(e.target.value)}
-              margin="normal"
-              variant="outlined"
-              required
-            />
-            
-            {cardType === 'standard' && (
+            <Stack spacing={2}>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">Card Type</FormLabel>
+                <RadioGroup
+                  row
+                  value={cardType}
+                  onChange={(e) => setCardType(e.target.value)}
+                >
+                  <FormControlLabel 
+                    value="standard" 
+                    control={<Radio />} 
+                    label="Standard Flashcard" 
+                  />
+                  <FormControlLabel 
+                    value="feynman" 
+                    control={<Radio />} 
+                    label="Feynman Flashcard" 
+                  />
+                </RadioGroup>
+              </FormControl>
+              
               <TextField
-                label="Back Side"
+                label={cardType === 'standard' ? "Front Side" : "Concept to Explain"}
                 fullWidth
                 multiline
                 rows={4}
-                value={back}
-                onChange={(e) => setBack(e.target.value)}
+                value={front}
+                onChange={(e) => setFront(e.target.value)}
                 margin="normal"
                 variant="outlined"
                 required
               />
-            )}
-            
-            {cardType === 'feynman' && (
-              <Typography variant="body2" color="textSecondary" sx={{ mt: 2, mb: 2 }}>
-                Feynman flashcards only require the concept to explain. During review, you'll record yourself explaining the concept as if teaching it to a child.
-              </Typography>
-            )}
-            
-            <Box mt={3} display="flex" justifyContent="space-between">
-              <Button
-                variant="outlined"
-                onClick={() => navigate(`/deck/${deckId}/cards`)}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
               
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={isLoading}
-              >
-                {isLoading ? <CircularProgress size={24} /> : 'Create Flashcard'}
-              </Button>
-            </Box>
+              {cardType === 'standard' && (
+                <TextField
+                  label="Back Side"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={back}
+                  onChange={(e) => setBack(e.target.value)}
+                  margin="normal"
+                  variant="outlined"
+                  required
+                />
+              )}
+              
+              {cardType === 'feynman' && (
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 2, mb: 2 }}>
+                  Feynman flashcards only require the concept to explain. During review, you'll record yourself explaining the concept as if teaching it to a child.
+                </Typography>
+              )}
+              
+              <Box mt={3} display="flex" justifyContent="space-between">
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate(`/decks/${deckId}/cards`)}
+                  disabled={isLoading}
+                >
+                  Back to Cards
+                </Button>
+                
+                <Box>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={resetForm}
+                    disabled={isLoading || (front === '' && back === '')}
+                    sx={{ mr: 2 }}
+                  >
+                    Clear Form
+                  </Button>
+                  
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <CircularProgress size={24} /> : 'Create Flashcard'}
+                  </Button>
+                </Box>
+              </Box>
+            </Stack>
           </form>
         </CardContent>
       </Card>

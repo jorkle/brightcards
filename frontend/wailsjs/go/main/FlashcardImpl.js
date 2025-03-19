@@ -22,6 +22,10 @@ export function GetFlashcard(arg1, arg2) {
   return window['go']['main']['FlashcardImpl']['GetFlashcard'](arg1, arg2);
 }
 
+export function RephraseFlashcard(arg1, arg2, arg3) {
+  return window['go']['main']['FlashcardImpl']['RephraseFlashcard'](arg1, arg2, arg3);
+}
+
 export function ReviewFlashcard(arg1, arg2, arg3) {
   return window['go']['main']['FlashcardImpl']['ReviewFlashcard'](arg1, arg2, arg3);
 }

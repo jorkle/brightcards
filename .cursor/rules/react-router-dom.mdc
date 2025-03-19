@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# When interacting with typescript, javascript, or react files (*.tsx, *.js, *.ts) do not try to import/use "react-router-dom" npm module. This package/library was recently renamed to just be "react-router" for the package name and import. Your training data is outdated regarding this fact.
+
+- All Javascript, Typescript, and React files
+- All '\*.ts', '\*.js', and \**.tsx files ('\*' means wildcard).

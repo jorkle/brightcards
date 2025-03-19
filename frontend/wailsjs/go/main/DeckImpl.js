@@ -6,6 +6,10 @@ export function CreateDeck(arg1, arg2, arg3) {
   return window['go']['main']['DeckImpl']['CreateDeck'](arg1, arg2, arg3);
 }
 
+export function CreateDeckWithRephraseSettings(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return window['go']['main']['DeckImpl']['CreateDeckWithRephraseSettings'](arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
 export function DeleteDeck(arg1) {
   return window['go']['main']['DeckImpl']['DeleteDeck'](arg1);
 }
@@ -24,4 +28,8 @@ export function GetDeck(arg1) {
 
 export function UpdateDeck(arg1, arg2, arg3, arg4) {
   return window['go']['main']['DeckImpl']['UpdateDeck'](arg1, arg2, arg3, arg4);
+}
+
+export function UpdateDeckWithRephraseSettings(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  return window['go']['main']['DeckImpl']['UpdateDeckWithRephraseSettings'](arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 }

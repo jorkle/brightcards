@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -26,6 +27,7 @@ type FlashcardModel struct {
 	Back           string    `json:"Back"`
 	DeckId         int       `json:"DeckId"`
 	CardType       string    `json:"CardType"` // "standard" or "feynman"
+	Source         string    `json:"Source"`   // "manual", "generated", "rephrased", or "unspecified"
 	FSRSDifficulty float64   `json:"FSRSDifficulty"`
 	FSRSStability  float64   `json:"FSRSStability"`
 	DueDate        time.Time `json:"DueDate"`
@@ -36,14 +38,17 @@ type FlashcardModel struct {
 }
 
 type DeckModel struct {
-	ID           int     `json:"ID"`
-	Name         string  `json:"Name"`
-	Description  string  `json:"Description"`
-	Purpose      string  `json:"Purpose"`
-	CardCount    int     `json:"CardCount"`
-	LastReviewed *string `json:"LastReviewed,omitempty"`
-	CreatedAt    string  `json:"CreatedAt"`
-	UpdatedAt    string  `json:"UpdatedAt"`
+	ID                   int     `json:"ID"`
+	Name                 string  `json:"Name"`
+	Description          string  `json:"Description"`
+	Purpose              string  `json:"Purpose"`
+	EnableAutoRephrase   bool    `json:"EnableAutoRephrase"`
+	EnableInitialismSwap bool    `json:"EnableInitialismSwap"`
+	MaxRephrasedCards    int     `json:"MaxRephrasedCards"`
+	CardCount            int     `json:"CardCount"`
+	LastReviewed         *string `json:"LastReviewed,omitempty"`
+	CreatedAt            string  `json:"CreatedAt"`
+	UpdatedAt            string  `json:"UpdatedAt"`
 }
 
 // FeynmanService provides functionality for Feynman flashcards
@@ -96,6 +101,54 @@ func (a *AIService) GenerateFlashcards(inputText string, purpose string, maxCard
 	return chat.GenerateFlashcards(inputText, purpose, maxCards)
 }
 
+// RephraseService provides functionality for flashcard rephrasing
+type RephraseService struct{}
+
+// RephraseFlashcard rephrases a flashcard using AI
+func (r *RephraseService) RephraseFlashcard(deckId int, cardId int, maxVariations int) (models.FlashcardModel, error) {
+	// Get the original flashcard
+	originalCard, err := database.Card(deckId, cardId)
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to get flashcard: %v", err)
+	}
+
+	// Get the deck to check if we should use initialism/acronym expansion
+	deck, err := database.Deck(deckId)
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to get deck: %v", err)
+	}
+
+	// Call the AI service to rephrase the flashcard, passing the initialism swap flag from deck settings
+	rephrasedCards, err := chat.RephraseFlashcard(&originalCard, deck.EnableInitialismSwap, maxVariations)
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to rephrase flashcard: %v", err)
+	}
+
+	// Make sure we have at least one rephrased card
+	if len(rephrasedCards) == 0 {
+		return models.FlashcardModel{}, fmt.Errorf("no rephrased flashcards were generated")
+	}
+
+	// Create a new card for the rephrased version
+	newCard := models.FlashcardModel{
+		Front:          rephrasedCards[0].Front,
+		Back:           rephrasedCards[0].Back,
+		DeckId:         deckId,
+		CardType:       originalCard.CardType,
+		Source:         "rephrased",
+		FSRSDifficulty: 0, // Start with default difficulty
+		FSRSStability:  0, // Start with default stability
+	}
+
+	// Create the new flashcard in the database
+	createdCard, err := database.CreateCard(newCard)
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to create rephrased flashcard: %v", err)
+	}
+
+	return createdCard, nil
+}
+
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
@@ -106,6 +159,7 @@ func main() {
 	feynmanService := &FeynmanService{}
 	settingsService := &SettingsService{}
 	aiService := &AIService{}
+	rephraseService := &RephraseService{}
 
 	// Initialize the OpenAI API key from environment variable or database
 	openaiApiKey := os.Getenv("OPENAI_API_KEY")
@@ -149,6 +203,7 @@ func main() {
 			feynmanService,
 			settingsService,
 			aiService,
+			rephraseService,
 		},
 	})
 
@@ -164,6 +219,8 @@ type Deck interface {
 	GetAllDecks() (decks []models.DeckModel, err error)
 	CreateDeck(name string, description string, purpose string) (deck models.DeckModel, err error)
 	UpdateDeck(deckId int, name string, description string, purpose string) (deck models.DeckModel, err error)
+	CreateDeckWithRephraseSettings(name string, description string, purpose string, enableAutoRephrase bool, enableInitialismSwap bool, maxRephrasedCards int) (deck models.DeckModel, err error)
+	UpdateDeckWithRephraseSettings(deckId int, name string, description string, purpose string, enableAutoRephrase bool, enableInitialismSwap bool, maxRephrasedCards int) (deck models.DeckModel, err error)
 	DeleteDeck(deckId int) error
 	ExportDeck(deckId int, format string) (string, error)
 }
@@ -174,14 +231,17 @@ func (d *DeckImpl) GetDeck(deckId int) (models.DeckModel, error) {
 		return models.DeckModel{}, err
 	}
 	return models.DeckModel{
-		ID:           dbDeck.ID,
-		Name:         dbDeck.Name,
-		Description:  dbDeck.Description,
-		Purpose:      dbDeck.Purpose,
-		CardCount:    dbDeck.CardCount,
-		LastReviewed: dbDeck.LastReviewed,
-		CreatedAt:    dbDeck.CreatedAt,
-		UpdatedAt:    dbDeck.UpdatedAt,
+		ID:                   dbDeck.ID,
+		Name:                 dbDeck.Name,
+		Description:          dbDeck.Description,
+		Purpose:              dbDeck.Purpose,
+		EnableAutoRephrase:   dbDeck.EnableAutoRephrase,
+		EnableInitialismSwap: dbDeck.EnableInitialismSwap,
+		MaxRephrasedCards:    dbDeck.MaxRephrasedCards,
+		CardCount:            dbDeck.CardCount,
+		LastReviewed:         dbDeck.LastReviewed,
+		CreatedAt:            dbDeck.CreatedAt,
+		UpdatedAt:            dbDeck.UpdatedAt,
 	}, nil
 }
 
@@ -194,14 +254,17 @@ func (d *DeckImpl) GetAllDecks() ([]models.DeckModel, error) {
 	decks := make([]models.DeckModel, len(dbDecks))
 	for i, dbDeck := range dbDecks {
 		decks[i] = models.DeckModel{
-			ID:           dbDeck.ID,
-			Name:         dbDeck.Name,
-			Description:  dbDeck.Description,
-			Purpose:      dbDeck.Purpose,
-			CardCount:    dbDeck.CardCount,
-			LastReviewed: dbDeck.LastReviewed,
-			CreatedAt:    dbDeck.CreatedAt,
-			UpdatedAt:    dbDeck.UpdatedAt,
+			ID:                   dbDeck.ID,
+			Name:                 dbDeck.Name,
+			Description:          dbDeck.Description,
+			Purpose:              dbDeck.Purpose,
+			EnableAutoRephrase:   dbDeck.EnableAutoRephrase,
+			EnableInitialismSwap: dbDeck.EnableInitialismSwap,
+			MaxRephrasedCards:    dbDeck.MaxRephrasedCards,
+			CardCount:            dbDeck.CardCount,
+			LastReviewed:         dbDeck.LastReviewed,
+			CreatedAt:            dbDeck.CreatedAt,
+			UpdatedAt:            dbDeck.UpdatedAt,
 		}
 	}
 	return decks, nil
@@ -213,14 +276,17 @@ func (d *DeckImpl) CreateDeck(name string, description string, purpose string) (
 		return models.DeckModel{}, err
 	}
 	return models.DeckModel{
-		ID:           dbDeck.ID,
-		Name:         dbDeck.Name,
-		Description:  dbDeck.Description,
-		Purpose:      dbDeck.Purpose,
-		CardCount:    dbDeck.CardCount,
-		LastReviewed: dbDeck.LastReviewed,
-		CreatedAt:    dbDeck.CreatedAt,
-		UpdatedAt:    dbDeck.UpdatedAt,
+		ID:                   dbDeck.ID,
+		Name:                 dbDeck.Name,
+		Description:          dbDeck.Description,
+		Purpose:              dbDeck.Purpose,
+		EnableAutoRephrase:   dbDeck.EnableAutoRephrase,
+		EnableInitialismSwap: dbDeck.EnableInitialismSwap,
+		MaxRephrasedCards:    dbDeck.MaxRephrasedCards,
+		CardCount:            dbDeck.CardCount,
+		LastReviewed:         dbDeck.LastReviewed,
+		CreatedAt:            dbDeck.CreatedAt,
+		UpdatedAt:            dbDeck.UpdatedAt,
 	}, nil
 }
 
@@ -230,14 +296,57 @@ func (d *DeckImpl) UpdateDeck(deckId int, name string, description string, purpo
 		return models.DeckModel{}, err
 	}
 	return models.DeckModel{
-		ID:           dbDeck.ID,
-		Name:         dbDeck.Name,
-		Description:  dbDeck.Description,
-		Purpose:      dbDeck.Purpose,
-		CardCount:    dbDeck.CardCount,
-		LastReviewed: dbDeck.LastReviewed,
-		CreatedAt:    dbDeck.CreatedAt,
-		UpdatedAt:    dbDeck.UpdatedAt,
+		ID:                   dbDeck.ID,
+		Name:                 dbDeck.Name,
+		Description:          dbDeck.Description,
+		Purpose:              dbDeck.Purpose,
+		EnableAutoRephrase:   dbDeck.EnableAutoRephrase,
+		EnableInitialismSwap: dbDeck.EnableInitialismSwap,
+		MaxRephrasedCards:    dbDeck.MaxRephrasedCards,
+		CardCount:            dbDeck.CardCount,
+		LastReviewed:         dbDeck.LastReviewed,
+		CreatedAt:            dbDeck.CreatedAt,
+		UpdatedAt:            dbDeck.UpdatedAt,
+	}, nil
+}
+
+func (d *DeckImpl) CreateDeckWithRephraseSettings(name string, description string, purpose string, enableAutoRephrase bool, enableInitialismSwap bool, maxRephrasedCards int) (models.DeckModel, error) {
+	dbDeck, err := database.CreateDeckWithRephraseSettings(name, description, purpose, enableAutoRephrase, enableInitialismSwap, maxRephrasedCards)
+	if err != nil {
+		return models.DeckModel{}, err
+	}
+	return models.DeckModel{
+		ID:                   dbDeck.ID,
+		Name:                 dbDeck.Name,
+		Description:          dbDeck.Description,
+		Purpose:              dbDeck.Purpose,
+		EnableAutoRephrase:   dbDeck.EnableAutoRephrase,
+		EnableInitialismSwap: dbDeck.EnableInitialismSwap,
+		MaxRephrasedCards:    dbDeck.MaxRephrasedCards,
+		CardCount:            dbDeck.CardCount,
+		LastReviewed:         dbDeck.LastReviewed,
+		CreatedAt:            dbDeck.CreatedAt,
+		UpdatedAt:            dbDeck.UpdatedAt,
+	}, nil
+}
+
+func (d *DeckImpl) UpdateDeckWithRephraseSettings(deckId int, name string, description string, purpose string, enableAutoRephrase bool, enableInitialismSwap bool, maxRephrasedCards int) (models.DeckModel, error) {
+	dbDeck, err := database.UpdateDeckWithRephraseSettings(deckId, name, description, purpose, enableAutoRephrase, enableInitialismSwap, maxRephrasedCards)
+	if err != nil {
+		return models.DeckModel{}, err
+	}
+	return models.DeckModel{
+		ID:                   dbDeck.ID,
+		Name:                 dbDeck.Name,
+		Description:          dbDeck.Description,
+		Purpose:              dbDeck.Purpose,
+		EnableAutoRephrase:   dbDeck.EnableAutoRephrase,
+		EnableInitialismSwap: dbDeck.EnableInitialismSwap,
+		MaxRephrasedCards:    dbDeck.MaxRephrasedCards,
+		CardCount:            dbDeck.CardCount,
+		LastReviewed:         dbDeck.LastReviewed,
+		CreatedAt:            dbDeck.CreatedAt,
+		UpdatedAt:            dbDeck.UpdatedAt,
 	}, nil
 }
 
@@ -258,6 +367,7 @@ type Flashcard interface {
 	DeleteFlashcard(deckId int, cardId int) (models.FlashcardModel, error)
 	ReviewFlashcard(deckId int, cardId int, grade string) error
 	UpdateGrading(grade string) error
+	RephraseFlashcard(deckId int, cardId int, maxVariations int) (models.FlashcardModel, error)
 }
 
 func (f *FlashcardImpl) GetFlashcard(deckId int, cardId int) (models.FlashcardModel, error) {
@@ -354,6 +464,40 @@ func (f *FlashcardImpl) UpdateGrading(grade string) error {
 	// to identify which card to update. Consider removing this method from the interface
 	// or clarifying its intended use case.
 	return errors.New("UpdateGrading is deprecated, use Review instead")
+}
+
+func (f *FlashcardImpl) RephraseFlashcard(deckId int, cardId int, maxVariations int) (models.FlashcardModel, error) {
+	// First get the original flashcard
+	originalCard, err := database.Card(deckId, cardId)
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to get flashcard: %v", err)
+	}
+
+	// Get the deck to check if we should use initialism/acronym expansion
+	deck, err := database.Deck(deckId)
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to get deck: %v", err)
+	}
+
+	// Call the AI service to rephrase the flashcard, passing the initialism swap flag from deck settings
+	rephrasedCards, err := chat.RephraseFlashcard(&originalCard, deck.EnableInitialismSwap, maxVariations)
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to rephrase flashcard: %v", err)
+	}
+
+	// Make sure we have at least one rephrased card
+	if len(rephrasedCards) == 0 {
+		return models.FlashcardModel{}, fmt.Errorf("no rephrased flashcards were generated")
+	}
+
+	// Update the first flashcard in the database and return it
+	// Note: We only update the first card for now
+	updatedCard, err := database.UpdateCard(rephrasedCards[0])
+	if err != nil {
+		return models.FlashcardModel{}, fmt.Errorf("failed to update flashcard: %v", err)
+	}
+
+	return updatedCard, nil
 }
 
 type FlashcardImpl struct{}

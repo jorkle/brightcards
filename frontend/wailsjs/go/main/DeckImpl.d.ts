@@ -4,6 +4,8 @@ import {models} from '../models';
 
 export function CreateDeck(arg1:string,arg2:string,arg3:string):Promise<models.DeckModel>;
 
+export function CreateDeckWithRephraseSettings(arg1:string,arg2:string,arg3:string,arg4:boolean,arg5:boolean,arg6:number):Promise<models.DeckModel>;
+
 export function DeleteDeck(arg1:number):Promise<void>;
 
 export function ExportDeck(arg1:number,arg2:string):Promise<string>;
@@ -13,3 +15,5 @@ export function GetAllDecks():Promise<Array<models.DeckModel>>;
 export function GetDeck(arg1:number):Promise<models.DeckModel>;
 
 export function UpdateDeck(arg1:number,arg2:string,arg3:string,arg4:string):Promise<models.DeckModel>;
+
+export function UpdateDeckWithRephraseSettings(arg1:number,arg2:string,arg3:string,arg4:string,arg5:boolean,arg6:boolean,arg7:number):Promise<models.DeckModel>;

@@ -24,6 +24,9 @@ export namespace models {
 	    Name: string;
 	    Description: string;
 	    Purpose: string;
+	    EnableAutoRephrase: boolean;
+	    EnableInitialismSwap: boolean;
+	    MaxRephrasedCards: number;
 	    CardCount: number;
 	    LastReviewed?: string;
 	    CreatedAt: string;
@@ -39,6 +42,9 @@ export namespace models {
 	        this.Name = source["Name"];
 	        this.Description = source["Description"];
 	        this.Purpose = source["Purpose"];
+	        this.EnableAutoRephrase = source["EnableAutoRephrase"];
+	        this.EnableInitialismSwap = source["EnableInitialismSwap"];
+	        this.MaxRephrasedCards = source["MaxRephrasedCards"];
 	        this.CardCount = source["CardCount"];
 	        this.LastReviewed = source["LastReviewed"];
 	        this.CreatedAt = source["CreatedAt"];
@@ -51,6 +57,7 @@ export namespace models {
 	    Back: string;
 	    DeckId: number;
 	    CardType: string;
+	    Source: string;
 	    FSRSDifficulty: number;
 	    FSRSStability: number;
 	    // Go type: time
@@ -71,6 +78,7 @@ export namespace models {
 	        this.Back = source["Back"];
 	        this.DeckId = source["DeckId"];
 	        this.CardType = source["CardType"];
+	        this.Source = source["Source"];
 	        this.FSRSDifficulty = source["FSRSDifficulty"];
 	        this.FSRSStability = source["FSRSStability"];
 	        this.DueDate = this.convertValues(source["DueDate"], null);

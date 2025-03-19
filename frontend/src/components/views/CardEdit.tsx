@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  Typography, 
+import {
+  Button,
+  Card,
+  CardContent,
+  Typography,
   Box,
   TextField,
   Stack,
@@ -15,12 +15,17 @@ import {
   FormLabel,
   RadioGroup,
   FormControlLabel,
-  Radio
+  Radio,
+  Select,
+  MenuItem,
+  InputLabel,
+  Divider
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import * as models from '../../../wailsjs/go/models';
 import { GetFlashcard, UpdateFlashcard } from '../../../wailsjs/go/main/FlashcardImpl';
+import { SelectChangeEvent } from '@mui/material/Select';
 
 function CardEdit() {
   const { deckId, cardId } = useParams<{ deckId: string; cardId: string }>();
@@ -32,7 +37,8 @@ function CardEdit() {
   const [formData, setFormData] = useState({
     front: '',
     back: '',
-    cardType: 'standard'
+    cardType: 'standard',
+    source: 'manual'
   });
 
   useEffect(() => {
@@ -52,7 +58,8 @@ function CardEdit() {
       setFormData({
         front: loadedCard.Front,
         back: loadedCard.Back,
-        cardType: loadedCard.CardType || 'standard'
+        cardType: loadedCard.CardType || 'standard',
+        source: loadedCard.Source || 'unspecified'
       });
       setError(null);
     } catch (err) {
@@ -70,31 +77,38 @@ function CardEdit() {
     }));
   };
 
+  const handleSourceChange = (event: SelectChangeEvent) => {
+    setFormData(prev => ({
+      ...prev,
+      source: event.target.value as string
+    }));
+  };
+
   const handleCancel = () => {
     navigate(`/decks/${deckId}/cards`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!deckId || !cardId) {
       setError('Invalid deck or card ID');
       return;
     }
-    
+
     if (!formData.front.trim()) {
       setError('Front side cannot be empty');
       return;
     }
-    
+
     if (formData.cardType === 'standard' && !formData.back.trim()) {
       setError('Back side cannot be empty for standard cards');
       return;
     }
-    
+
     setSaving(true);
     setError(null);
-    
+
     try {
       const updatedCard = new models.models.FlashcardModel();
       updatedCard.ID = parseInt(cardId);
@@ -102,10 +116,11 @@ function CardEdit() {
       updatedCard.Front = formData.front;
       updatedCard.Back = formData.back;
       updatedCard.CardType = formData.cardType;
+      updatedCard.Source = formData.source;
       updatedCard.FSRSStability = card?.FSRSStability || 0;
       updatedCard.FSRSDifficulty = card?.FSRSDifficulty || 0;
       updatedCard.DueDate = card?.DueDate || new Date().toISOString();
-      
+
       await UpdateFlashcard(updatedCard);
       navigate(`/decks/${deckId}/cards`);
     } catch (err) {
@@ -131,7 +146,18 @@ function CardEdit() {
     );
   }
 
-  const isFormValid = formData.front.trim() !== '' && formData.back.trim() !== '';
+  const isFormValid = formData.front.trim() !== '' &&
+    (formData.cardType !== 'standard' || formData.back.trim() !== '');
+
+  // Function to get the color for source chip
+  const getSourceColor = (source: string) => {
+    switch (source) {
+      case 'manual': return 'default';
+      case 'generated': return 'primary';
+      case 'rephrased': return 'secondary';
+      default: return 'default';
+    }
+  };
 
   return (
     <div className="p-4">
@@ -151,17 +177,32 @@ function CardEdit() {
                     value={formData.cardType}
                     onChange={(e) => setFormData(prev => ({ ...prev, cardType: e.target.value }))}
                   >
-                    <FormControlLabel 
-                      value="standard" 
-                      control={<Radio />} 
-                      label="Standard Flashcard" 
+                    <FormControlLabel
+                      value="standard"
+                      control={<Radio />}
+                      label="Standard Flashcard"
                     />
-                    <FormControlLabel 
-                      value="feynman" 
-                      control={<Radio />} 
-                      label="Feynman Flashcard" 
+                    <FormControlLabel
+                      value="feynman"
+                      control={<Radio />}
+                      label="Feynman Flashcard"
                     />
                   </RadioGroup>
+                </FormControl>
+
+                <FormControl fullWidth variant="outlined" sx={{ mb: 3 }}>
+                  <InputLabel id="source-label">Source</InputLabel>
+                  <Select
+                    labelId="source-label"
+                    value={formData.source}
+                    onChange={handleSourceChange}
+                    label="Source"
+                  >
+                    <MenuItem value="manual">Manually Created</MenuItem>
+                    <MenuItem value="generated">AI Generated</MenuItem>
+                    <MenuItem value="rephrased">AI Rephrased</MenuItem>
+                    <MenuItem value="unspecified">Unspecified</MenuItem>
+                  </Select>
                 </FormControl>
 
                 <TextField
@@ -196,42 +237,51 @@ function CardEdit() {
                   </Typography>
                 )}
 
-                {card.LastReviewed && (
-                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Divider />
+
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Chip
+                    label={`Source: ${formData.source.charAt(0).toUpperCase() + formData.source.slice(1)}`}
+                    color={getSourceColor(formData.source) as any}
+                    variant="outlined"
+                  />
+
+                  {card.LastReviewed && (
                     <Chip
                       icon={<AccessTimeIcon />}
                       label={`Last reviewed: ${new Date(card.LastReviewed).toLocaleDateString()}`}
                       variant="outlined"
                     />
-                    {card.Difficulty && (
-                      <Chip
-                        label={`Difficulty: ${card.Difficulty}`}
-                        color={
-                          card.Difficulty === 'Easy' ? 'success' :
-                          card.Difficulty === 'Hard' ? 'error' : 'info'
-                        }
-                        variant="outlined"
-                      />
-                    )}
-                  </Box>
-                )}
+                  )}
 
-                <Box sx={{ 
-                  display: 'flex', 
+                  {card.Difficulty && (
+                    <Chip
+                      label={`Difficulty: ${card.Difficulty}`}
+                      color={
+                        card.Difficulty === 'Easy' ? 'success' :
+                          card.Difficulty === 'Hard' ? 'error' : 'info'
+                      }
+                      variant="outlined"
+                    />
+                  )}
+                </Box>
+
+                <Box sx={{
+                  display: 'flex',
                   justifyContent: 'flex-end',
                   gap: 2,
-                  mt: 2 
+                  mt: 2
                 }}>
-                  <Button 
+                  <Button
                     onClick={handleCancel}
                     color="inherit"
                     disabled={saving}
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     type="submit"
-                    variant="contained" 
+                    variant="contained"
                     color="primary"
                     disabled={!isFormValid || saving}
                   >

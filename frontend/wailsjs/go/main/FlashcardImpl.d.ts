@@ -12,6 +12,8 @@ export function GetDueFlashcards(arg1:number):Promise<Array<models.FlashcardMode
 
 export function GetFlashcard(arg1:number,arg2:number):Promise<models.FlashcardModel>;
 
+export function RephraseFlashcard(arg1:number,arg2:number,arg3:number):Promise<models.FlashcardModel>;
+
 export function ReviewFlashcard(arg1:number,arg2:number,arg3:string):Promise<void>;
 
 export function UpdateFlashcard(arg1:models.FlashcardModel):Promise<models.FlashcardModel>;

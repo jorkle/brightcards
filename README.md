@@ -17,7 +17,7 @@ I created this as I was using Anki and wanted the benefit of spaced repetition b
 - Using the AI features requires an OpenAI API key to be configured. The OpenAI API requires credits, although they are inexpensive.
 
 ---
-Checksums:
+Checksums (SHA256):
 
 ```
 be0fb11d655c064f86db4842b1462fba1d91ed7499550960eb64327513ce90d2  ./bcards
@@ -26,6 +26,22 @@ be0fb11d655c064f86db4842b1462fba1d91ed7499550960eb64327513ce90d2  ./bcards
 
 VirusTotal: [https://www.virustotal.com/gui/file/05f742f73a99dc6732106e6ee75c69762d2aa45d2dab8490ccf812b059e73f72](https://www.virustotal.com/gui/file/05f742f73a99dc6732106e6ee75c69762d2aa45d2dab8490ccf812b059e73f72)
 
+## Examples
+### Decks page
+![Decks page](https://i.imgur.com/G7Ykq7e.png)
+
+### Flashcard Generation (from clipboard contents)
+![Flashcard Generation](https://i.imgur.com/lyf4SW6.png)
+
+### Modified Feynman Method (Practice explanation)
+![](https://i.imgur.com/XWLsBTc.png)
+![](https://i.imgur.com/kh7P7sk.png)
+
+## Reviewed cards page (due dates based off of FSRS v5 algorithm)
+![](https://i.imgur.com/M4ZLzvO.png)
+
+## Review/Grade flashcard (for FSRS v5 grading)
+![](https://i.imgur.com/6HhpxDJ.png)
 ## License
 
 [https://github.com/jorkle/brightcards/LICENSE]()
